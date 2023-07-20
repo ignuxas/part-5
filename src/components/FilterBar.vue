@@ -1,0 +1,92 @@
+<template>
+    <div class="flex h-20 justify-between">
+        <div> 
+            <p>Įmonė</p>
+            <select name="company" id="Company" v-model="selectedCompany" class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
+                <option value="" selected>Filtruoti įmones</option>
+                <option v-for="company in getCompaniesMin.items" :key="company.id" :value="company">{{ company.name }}</option>
+            </select>
+        </div>
+        <div> 
+            <p>Padalinys</p>
+            <select name="department" id="Department" v-model="selectedDepartment" class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
+                <option value="" selected>Filtruoti padalinius</option>
+                <option v-for="department in getDepartmentsMin.items" :key="department.id" :value="department">{{ department.name }}</option>
+            </select>
+        </div>
+        <div>
+            <p>Skyrius</p>
+            <select name="division" id="Division" v-model="selectedDivision"  class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
+                <option value="" selected>Filtruoti skyrius</option>
+                <option v-for="division in getDivisionsMin.items" :key="division.id" :value="division">{{ division.name }}</option>
+            </select>
+        </div>
+        <div>
+            <p>Grupė</p>
+            <select name="group" id="Group" v-model="selectedGroup" class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
+                <option value="" selected>Filtruoti grupes</option>
+                <option v-for="group in getGroupsMin.items" :key="group.id" :value="group">{{ group.name }}</option>
+            </select>
+        </div>
+        <div>
+            <p>Ofisas</p>
+            <select name="office" id="Office" v-model="selectedOffice"  class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
+                <option value="" selected>Filtruoti ofisus</option>
+                <option v-for="office in getOfficesMin.items" :key="office.id" :value="office">{{ office.name }}</option>
+            </select>
+        </div>
+    </div>
+</template>
+
+<script>
+import {mapGetters, mapMutations} from 'vuex';
+
+export default {
+    name: 'FilterBar',
+    data() {
+        return {
+            selectedCompany: '',
+            selectedDepartment: '',
+            selectedDivision: '',
+            selectedGroup: '',
+            selectedOffice: '',
+        }
+    },
+    watch:{
+        selectedCompany: function (val) {
+            this.setSelectedCompany(val);
+            this.$api.getEmployees();
+        },
+        selectedDepartment: function (val) {
+            this.setSelectedDepartment(val);
+            this.$api.getEmployees();
+        },
+        selectedDivision: function (val) {
+            this.setSelectedDivision(val);
+            this.$api.getEmployees();
+        },
+        selectedGroup: function (val) {
+            this.setSelectedGroup(val);
+            this.$api.getEmployees();
+        },
+        selectedOffice: function (val) {
+            this.setSelectedOffice(val);
+            this.$api.getEmployees();
+        },
+    },
+    computed: {
+        ...mapGetters('items', ['getCompaniesMin', 
+                                 'getDepartmentsMin', 
+                                 'getDivisionsMin',
+                                 'getGroupsMin', 
+                                 'getOfficesMin']),
+    },
+    methods: {
+        ...mapMutations('page', ['setSelectedCompany', 
+                                  'setSelectedDepartment', 
+                                  'setSelectedDivision', 
+                                  'setSelectedGroup', 
+                                  'setSelectedOffice']),
+    }
+};
+</script>
