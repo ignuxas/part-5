@@ -1,17 +1,30 @@
 <template>
   <div id="app">
     <Navigation />
+    <Status />
+    <MutationWindow />
+    <DeleteWindow />
     <router-view class="px-24 py-10"/>
   </div>
 </template>
 
 <script>
 import Navigation from "./components/Navigation.vue";
+import Status from "./components/StatusCard.vue" 
+import MutationWindow from "./components/MutationWindow.vue";
+import DeleteWindow from "./components/DeleteWindow.vue";
+
 export default {
   name: "App",
   components: {
     Navigation,
+    Status,
+    MutationWindow,
+    DeleteWindow
   },
+  mounted() {
+    this.$api.login();
+  }
 };
 </script>
 

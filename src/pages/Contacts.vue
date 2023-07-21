@@ -8,6 +8,7 @@
                 <font-awesome-icon v-if= "isTableView" :icon="['fas', 'th']" />
                 <font-awesome-icon v-else :icon="['fas', 'list']" />
             </button>
+            <button v-if="permissions.edit_employees" @click="toggleMutateWindowFunc"  class="w-20 h-14 relative bg-sky-700 rounded-3xl shadow"><font-awesome-icon :icon="['fas', 'plus']" /></button>
         </div>
         <div class="w-64 h-6 my-4 text-black text-opacity-90 text-base font-normal leading-normal tracking-tight"> <!-- Total items -->
             <span>Iš viso rasta: </span>
@@ -15,14 +16,7 @@
         </div>
         <FilterBar /> <!-- FilterBar -->
         <EmployeeCards/> <!-- Content -->
-        <div class="relative flex p-6 gap-6 items-center justify-center width=[100%] text-white"> <!-- Pagination -->
-            <button @click="decrementPage" class="w-72 h-9 px-6 bg-secondary rounded justify-between items-center inline-flex"><font-awesome-icon :icon="['fas', 'angles-left']" /> PRAEITAS PUSLAPIS</button>
-            <span class="text-black">{{ getCurrentPage }} / {{ getTotalPages }}</span>
-            <button @click="incrementPage" class="w-72 h-9 px-6 bg-secondary rounded justify-between items-center flex">KITAS PUSLAPIS <font-awesome-icon :icon="['fas', 'angles-right']" /></button>
-            <select v-model="perPage" class="absolute right-0 h-9 text-black bg-inherit border-gray_light border-2">
-                <option v-for="option in perPageOptions" :key="option" :value="option">Rodyti {{ option }} įrašų</option>
-            </select>
-        </div>
+        <Pagination /> <!-- Pagination -->
     </div>
 </template>
 
@@ -30,28 +24,17 @@
 import EmployeeCards from '../components/EmployeeCards.vue';
 import Search from '../components/Search.vue';
 import FilterBar from '../components/FilterBar.vue';
+import Pagination from '../components/Pagination.vue';
 import { mapGetters, mapMutations } from 'vuex';
 
 
 export default {
     name: 'Contacts',
-    data() {
-        return {
-            perPage: 25,
-            perPageOptions: [5, 10, 25, 50, 100, 2000]
-        }
-    },
-    watch: {
-        perPage() {
-            this.setPostsPerPage(this.perPage);
-            this.$store.commit('page/setCurrentPage', 1);
-            this.$api.getEmployees();
-        }
-    },
     components: {
         EmployeeCards,
         Search,
-        FilterBar
+        FilterBar,
+        Pagination
     },
     mounted() {
         this.$api.getEmployees();
@@ -68,23 +51,23 @@ export default {
                                 'getCurrentPage',
                                 'getPostsPerPage',
                                 'getTotalPages']),
+        ...mapGetters('user', [
+            'permissions'
+        ]),
     },
     methods: {
-        incrementPage() {
-            if(this.getCurrentPage < this.getTotalPages){
-                this.$store.commit('page/incrementPage');
-                this.$api.getEmployees();
-            }
-        },
-        decrementPage() {
-            if(this.getCurrentPage > 1){
-                this.$store.commit('page/decrementPage');
-                this.$api.getEmployees();
-            }
-        },
         ...mapMutations('page', ['toggleTableView',
                                  'setPostsPerPage'
-                                ])
+                                ]),
+        ...mapMutations('mutate', ['toggleMutateWindow',
+                                   'setEditMode',
+                                    'setType'
+                                  ]),
+        toggleMutateWindowFunc() {
+            this.setType('employee');
+            this.toggleMutateWindow();
+            this.setEditMode(false);
+        },
     }
 };
 </script>

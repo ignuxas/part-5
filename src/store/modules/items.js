@@ -2,17 +2,14 @@ const state = {
     employees: [],
     currentEmployee: {},
 
-    companiesMin: [],
-    departmentsMin: [],
-    divisionsMin: [],
-    groupsMin: [],
-    officesMin: [],
-
     companies: [],
     departments: [],
     divisions: [],
     groups: [],
     offices: [],
+
+    currentCompany: {},
+
 }
 
 const getters = {
@@ -25,11 +22,7 @@ const getters = {
     getGroups: state => state.groups,
     getOffices: state => state.offices,
 
-    getCompaniesMin: state => state.companiesMin,
-    getDepartmentsMin: state => state.departmentsMin,
-    getDivisionsMin: state => state.divisionsMin,
-    getGroupsMin: state => state.groupsMin,
-    getOfficesMin: state => state.officesMin,
+    getCompany: state => state.currentCompany,
 }
 
 const actions = {}
@@ -43,11 +36,7 @@ const mutations = {
     setGroups(state, groups) {state.groups = groups},
     setOffices(state, offices) {state.offices = offices},
 
-    setCompaniesMin(state, companies) {state.companiesMin = companies},
-    setDepartmentsMin(state, departments) {state.departmentsMin = departments},
-    setDivisionsMin(state, divisions) {state.divisionsMin = divisions},
-    setGroupsMin(state, groups) {state.groupsMin = groups},
-    setOfficesMin(state, offices) {state.officesMin = offices},
+    setCompany(state, company) {state.currentCompany = company},
 }
 
 export default {

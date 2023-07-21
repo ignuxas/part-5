@@ -9,12 +9,23 @@ import vueDebounce from 'vue-debounce'
 
 //font awesome
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faFilter, faList, faMagnifyingGlass, faAnglesLeft, faAnglesRight, faTh } from '@fortawesome/free-solid-svg-icons'
+import { faFilter, faList, faMagnifyingGlass, faAnglesLeft, faAnglesRight, faTh, faPlus, faPen, faTrash, faUser, faCircleCheck, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 import api from './plugins/api';
 
-library.add(faMagnifyingGlass, faFilter, faList, faAnglesLeft, faAnglesRight, faTh)
+library.add(faMagnifyingGlass, 
+            faFilter, 
+            faList, 
+            faPlus,
+            faAnglesLeft,
+            faAnglesRight, 
+            faPen,
+            faTrash,
+            faUser,
+            faCircleCheck,
+            faCircleXmark,
+            faTh)
 
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 Vue.use(VueRouter);

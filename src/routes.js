@@ -1,6 +1,7 @@
 import Login from './pages/Login.vue'
 import Contacts from './pages/Contacts.vue'
 import ContactDetails from './pages/ContactDetails.vue'
+import Companies from './pages/Companies.vue'
 
 export default [
     {
@@ -18,5 +19,9 @@ export default [
     {
         path: '/contacts/details/:id',
         component: ContactDetails,
-    }
+    },
+    {
+        path: '/companies',
+        component: Companies,
+    },
 ]

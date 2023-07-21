@@ -2,37 +2,37 @@
     <div class="flex h-20 justify-between">
         <div> 
             <p>Įmonė</p>
-            <select name="company" id="Company" v-model="selectedCompany" class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
+            <select name="company" v-model="selectedCompany" class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
                 <option value="" selected>Filtruoti įmones</option>
-                <option v-for="company in getCompaniesMin.items" :key="company.id" :value="company">{{ company.name }}</option>
+                <option v-for="company in getCompanies.items" :key="company.id" :value="company">{{ company.name }}</option>
             </select>
         </div>
         <div> 
             <p>Padalinys</p>
-            <select name="department" id="Department" v-model="selectedDepartment" class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
+            <select name="department" v-model="selectedDepartment" class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
                 <option value="" selected>Filtruoti padalinius</option>
-                <option v-for="department in getDepartmentsMin.items" :key="department.id" :value="department">{{ department.name }}</option>
+                <option v-for="department in getDepartments.items" :key="department.id" :value="department">{{ department.name }}</option>
             </select>
         </div>
         <div>
             <p>Skyrius</p>
-            <select name="division" id="Division" v-model="selectedDivision"  class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
+            <select name="division" v-model="selectedDivision"  class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
                 <option value="" selected>Filtruoti skyrius</option>
-                <option v-for="division in getDivisionsMin.items" :key="division.id" :value="division">{{ division.name }}</option>
+                <option v-for="division in getDivisions.items" :key="division.id" :value="division">{{ division.name }}</option>
             </select>
         </div>
         <div>
             <p>Grupė</p>
-            <select name="group" id="Group" v-model="selectedGroup" class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
+            <select name="group" v-model="selectedGroup" class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
                 <option value="" selected>Filtruoti grupes</option>
-                <option v-for="group in getGroupsMin.items" :key="group.id" :value="group">{{ group.name }}</option>
+                <option v-for="group in getGroups.items" :key="group.id" :value="group">{{ group.name }}</option>
             </select>
         </div>
         <div>
             <p>Ofisas</p>
-            <select name="office" id="Office" v-model="selectedOffice"  class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
+            <select name="office" v-model="selectedOffice"  class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
                 <option value="" selected>Filtruoti ofisus</option>
-                <option v-for="office in getOfficesMin.items" :key="office.id" :value="office">{{ office.name }}</option>
+                <option v-for="office in getOffices.items" :key="office.id" :value="office">{{ office.name }}</option>
             </select>
         </div>
     </div>
@@ -75,11 +75,11 @@ export default {
         },
     },
     computed: {
-        ...mapGetters('items', ['getCompaniesMin', 
-                                 'getDepartmentsMin', 
-                                 'getDivisionsMin',
-                                 'getGroupsMin', 
-                                 'getOfficesMin']),
+        ...mapGetters('items', ['getCompanies', 
+                                 'getDepartments', 
+                                 'getDivisions',
+                                 'getGroups', 
+                                 'getOffices']),
     },
     methods: {
         ...mapMutations('page', ['setSelectedCompany', 

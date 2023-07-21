@@ -1,5 +1,4 @@
 const state = {
-    fullNavigation: true,
     tableView: true,
 
     selectedCompany: '',
@@ -12,6 +11,9 @@ const state = {
     postsPerPage: 25,
     totalPages: 1,
     search: '',
+
+    status: 200,
+    showStatus: false,
 }
 
 const getters = {
@@ -26,6 +28,9 @@ const getters = {
     getSelectedDivision: state => state.selectedDivision,
     getSelectedGroup: state => state.selectedGroup,
     getSelectedOffice: state => state.selectedOffice,
+
+    getShowStatus: state => state.showStatus,
+    getStatus: state => state.status,
 
     getSearch: state => state.search,
 }
@@ -51,6 +56,16 @@ const mutations = {
             state.currentPage--;
         }
     },
+    
+    toggleStatus: (state, status) => {
+        state.status = status;
+        if(!state.showStatus){
+            state.showStatus = true;
+            setTimeout(() => {
+                state.showStatus = false;
+            }, 3000);
+        }},
+
     setPostsPerPage(state, value) {state.postsPerPage = value;},
     setSearch(state, value) {state.search = value;},
     setTotalPages(state, value) {state.totalPages = value;},
