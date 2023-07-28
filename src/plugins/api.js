@@ -1,9 +1,8 @@
-import { data } from 'autoprefixer'
 import axios from 'axios'
 
 export const api = {}
 
-const defaultToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uSWQiOiJfcGJfdXNlcnNfYXV0aF8iLCJleHAiOjE2NzgzNjY5ODgsImlkIjoidWx6YWlxa2U4eDB4ZGkxIiwidHlwZSI6ImF1dGhSZWNvcmQifQ.MKBVAmqknF24vtzgNihpC57Ny1qWEFoCqeSEM4GWUtI"
+const defaultToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uSWQiOiJfcGJfdXNlcnNfYXV0aF8iLCJleHAiOjE2OTE3NDIzNTgsImlkIjoiMmVsN3I1Y3U3MTJjZmJzIiwidHlwZSI6ImF1dGhSZWNvcmQifQ.NZrGjD8EbvFhR_-lLSwfVT0xDvQmRyRzyIx3uKfhE0c"
 
 const headers = { // CHANGE THIS
     'Authorization': 'Bearer ' + defaultToken,
@@ -14,13 +13,27 @@ api.http = axios.create({
     timeout: 2000,
 })
 
+// SETTERS -------------------
+const setEmployees = (employees) => api.store.commit('items/setEmployees', employees)
+const setEmployee = (employee) => api.store.commit('items/setEmployee', employee)
+
+const setTotalPages = (totalPages) => api.store.commit('page/setTotalPages', totalPages)
+const setUsers = (users) => api.store.commit('items/setUsers', users)
+
+const setCompanies = (companies) => api.store.commit('items/setCompanies', companies)
+const setDepartments = (departments) => api.store.commit('items/setDepartments', departments)
+const setDivisions = (divisions) => api.store.commit('items/setDivisions', divisions)
+const setGroups = (groups) => api.store.commit('items/setGroups', groups)
+const setOffices = (offices) => api.store.commit('items/setOffices', offices)
+
+const setToken = (token) => api.store.commit('user/setToken', token)
+const setUser = (user) => api.store.commit('user/setUser', user)
+const toggleStatus = (status) => api.store.commit('page/toggleStatus', status)
+
 // ------------------------
 //       GET CALLS 
 // ------------------------
-
 api.getEmployees = async function () {
-    const setEmployees = (employees) => api.store.commit('items/setEmployees', employees)
-    const setTotalPages = (totalPages) => api.store.commit('page/setTotalPages', totalPages)
     const page = api.store.getters['page/getCurrentPage']
     const perPage = api.store.getters['page/getPostsPerPage']
     const search = api.store.getters['page/getSearch']
@@ -44,7 +57,6 @@ api.getEmployees = async function () {
         page, perPage,
         // pocketbase - trash filtering system: doesn't except empty values, can't use && with no end and other dumb stuff
         filter: filterWithValuesLen || search ? '(' + Object.keys(filtersWithValues).map((key) => `${key}='${filtersWithValues[key]}'`).join('&&') + `${filterWithValuesLen?'&&':''}(email~'${search}'||name~'${search}'||surname~'${search}')` +')' : '',
-        //        filter: Object.keys(filtersWithValues).length ? '(' + Object.keys(filtersWithValues).map((key, index) => `${key}='${filtersWithValues[key]}'${index !== Object.keys(filtersWithValues).length-1 ? '&&' : ''}`).join('') + ')' : '',
     }
 
     try {
@@ -60,8 +72,6 @@ api.getEmployees = async function () {
 }
 
 api.getEmployee = async function (id) {
-    const setEmployee = (employee) => api.store.commit('items/setEmployee', employee)
-    
     const params = {
         expand: 'office_id,company_id,department_id,division_id',
     }
@@ -72,8 +82,22 @@ api.getEmployee = async function (id) {
     } catch (error) {console.log(error)}
 }
 
+api.getUsers = async function () {
+    const token = api.store.getters['user/getToken']
+
+    const params = {
+        expand: 'permissions_id',
+    }
+
+    try {
+        const response = await api.http.get('/collections/users/records',
+        { headers: { Authorization: `Bearer ${token}` }, params })
+        console.log(response.data)
+        setUsers(response.data.items)
+    } catch (error) {console.log(error)}
+}
+
 api.getCompanies = async function () {
-    const setCompanies = (companies) => api.store.commit('items/setCompanies', companies)
     try {
         const response = await api.http.get('/collections/companies/records', 
         { headers })
@@ -82,8 +106,6 @@ api.getCompanies = async function () {
 }
 
 api.getDepartments = async function () {
-    const setDepartments = (departments) => api.store.commit('items/setDepartments', departments)
-
     try {
         const response = await api.http.get('/collections/departments/records',
         { headers })
@@ -92,8 +114,6 @@ api.getDepartments = async function () {
 }
 
 api.getDivisions = async function () {
-    const setDivisions = (divisions) => api.store.commit('items/setDivisions', divisions)
-
     try {
         const response = await api.http.get('/collections/divisions/records',
         { headers })
@@ -102,8 +122,6 @@ api.getDivisions = async function () {
 }
 
 api.getGroups = async function () {
-    const setGroups = (groups) => api.store.commit('items/setGroups', groups)
-    
     try {
         const response = await api.http.get('/collections/groups/records',
         { headers })
@@ -112,8 +130,6 @@ api.getGroups = async function () {
 }
 
 api.getOffices = async function () {
-    const setOffices = (offices) => api.store.commit('items/setOffices', offices)
-
     try {
         const response = await api.http.get('/collections/offices/records',
         { headers })
@@ -125,18 +141,13 @@ api.getOffices = async function () {
 //       LOGIN
 // ------------------------
 
-api.login = async function (identity=null, password=null) {
-    if(api.store.getters['user/getToken'] && api.store.getters['user/getUser']) return { data: null, status: 200 }
-
-    const setToken = (token) => api.store.commit('user/setToken', token)
-    const setUser = (user) => api.store.commit('user/setUser', user)
-    const toggleStatus = (status) => api.store.commit('page/toggleStatus', status)
-
+api.login = async function (identity=null, password=null, skipCheck=false) {
+    if(!skipCheck) {
+        if(api.store.getters['user/getToken'] && api.store.getters['user/getUser']) return { data: null, status: 200 }
+    }
     //check if token and user are in local storage
     const token = localStorage.getItem('token')
     const user = localStorage.getItem('user')
-    console.log(token)
-    console.log(user)
     if(token && user) {
         setToken(token)
         setUser(JSON.parse(user))
@@ -182,7 +193,6 @@ api.logout = async function () {
 // ------------------------
 
 api.createEmployee = async function (employee) {
-    const toggleStatus = (status) => api.store.commit('page/toggleStatus', status)
     const token = api.store.getters['user/getToken']
 
     console.log(employee)
@@ -203,7 +213,6 @@ api.createEmployee = async function (employee) {
 }
 
 api.updateEmployee = async function (employee) {
-    const toggleStatus = (status) => api.store.commit('page/toggleStatus', status)
     const token = api.store.getters['user/getToken']
 
     try {
@@ -222,7 +231,6 @@ api.updateEmployee = async function (employee) {
 }
 
 api.deleteEmployee = async function (id) {
-    const toggleStatus = (status) => api.store.commit('page/toggleStatus', status)
     const token = api.store.getters['user/getToken']
 
     try {
@@ -245,7 +253,6 @@ api.deleteEmployee = async function (id) {
 // ------------------------
 
 api.createCompany = async function (company) {
-    const toggleStatus = (status) => api.store.commit('page/toggleStatus', status)
     const token = api.store.getters['user/getToken']
 
     try {
@@ -264,7 +271,6 @@ api.createCompany = async function (company) {
 }
 
 api.updateCompany = async function (company) {
-    const toggleStatus = (status) => api.store.commit('page/toggleStatus', status)
     const token = api.store.getters['user/getToken']
     
     try {
@@ -283,7 +289,6 @@ api.updateCompany = async function (company) {
 }
 
 api.deleteCompany = async function (id) {
-    const toggleStatus = (status) => api.store.commit('page/toggleStatus', status)
     const token = api.store.getters['user/getToken']
 
     try {
@@ -301,6 +306,140 @@ api.deleteCompany = async function (id) {
     }
 }
 
+// ------------------------
+//       USERS 
+// ------------------------
+
+// ---------- Permissions ----------
+api.createPermission = async function (permission) {
+    const token = api.store.getters['user/getToken']
+
+    try {
+        const response = await api.http.post('/collections/user_permissions/records',
+        permission, { headers: { Authorization: `Bearer ${token}` } })
+        return { data: response.data, status: response.status }
+    }
+    catch (error) {
+        console.log(error)
+        toggleStatus(400)
+        return { data: null, status: 400 }
+    }
+}
+api.editPermission = async function (permission) {
+    const token = api.store.getters['user/getToken']
+
+    try {
+        const response = await api.http.patch(`/collections/user_permissions/records/${permission.id}`,
+        permission, { headers: { Authorization: `Bearer ${token}` } })
+        return { data: response.data, status: response.status }
+    }
+    catch (error) {
+        console.log(error)
+        toggleStatus(400)
+        return { data: null, status: 400 }
+    }
+}
+api.deletePermission = async function (id) {
+    const token = api.store.getters['user/getToken']
+
+    try {
+        const response = await api.http.delete(`/collections/user_permissions/records/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } })
+        return { data: response.data, status: response.status }
+    }
+    catch (error) {
+        console.log(error)
+        toggleStatus(400)
+        return { data: null, status: 400 }
+    }
+}
+
+// ---------- Users ----------
+api.createUser = async function (user, permissions) {
+    const token = api.store.getters['user/getToken']
+    const randomPassword = Math.random().toString(36).slice(-8)
+
+    console.log(token)
+
+    const permissionResponse = await api.createPermission(permissions)
+    if(permissionResponse.status !== 200) return { data: null, status: 400 }
+
+    user = {
+        ...user,
+        emailVisibility: true,
+        password: randomPassword,
+        passwordConfirm: randomPassword,
+        permissions_id: permissionResponse.data.id,
+    }
+
+    try {
+        const response = await api.http.post('/collections/users/records',
+        user, { headers: { Authorization: `Bearer ${token}` } })
+
+        toggleStatus(response.status)
+        api.getUsers()
+        return { data: response.data, status: response.status }
+    }
+    catch (error) {
+        console.log(error)
+        await api.deletePermission(permissionResponse.data.id)
+        toggleStatus(400)
+        return { data: null, status: 400 }
+    }
+}
+
+api.updateUser = async function (user, permissions) {
+    const token = api.store.getters['user/getToken']
+    
+    const permissionResponse = await api.editPermission(permissions)
+    if(permissionResponse.status !== 200) return { data: null, status: 400 }
+
+    const params = {
+        expand: 'permissions_id',
+    }
+
+    user = {
+        ...user,
+        permissions_id: permissionResponse.data.id,
+    }
+
+    try {
+        const response = await api.http.patch(`/collections/users/records/${user.id}`,
+        user, { headers: { Authorization: `Bearer ${token}` }, params })
+        toggleStatus(response.status)
+        api.getUsers()
+        setUser(response.data)
+        return { data: response.data, status: response.status }
+    }
+    catch (error) {
+        console.log(error)
+        await api.deletePermission(permissionResponse.data.id)
+        toggleStatus(400)
+        return { data: null, status: 400 }
+    }
+}
+
+api.deleteUser = async function (id) {
+    const token = api.store.getters['user/getToken']
+
+    try {
+        const response = await api.http.delete(`/collections/users/records/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } })
+
+        toggleStatus(response.status)
+        api.getUsers()
+        return { data: response.data, status: response.status }
+    }
+    catch (error) {
+        console.log(error)
+        toggleStatus(400)
+        return { data: null, status: 400 }
+    }
+}
+
+// ------------------------
+// ------------------------
+// ------------------------
 export default {
     install(Vue, store) {
         api.store = store

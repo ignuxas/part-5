@@ -19,6 +19,40 @@
                     <button v-else class="w-32 h-8 mt-8 bg-secondary text-white hover:bg-primary rounded" @click="submit">Pridėti</button>
                 </div>
             </div>
+            <div v-else-if="getType === 'user'">
+                <h1 v-if="getEditMode" class="text-2xl">Readaguoti paskyrą</h1>
+                <h1 v-else class="text-2xl">Sukurti naują paskyrą</h1>
+                <div class="flex gap-10 p-2">
+                    <div>
+                        <div class="flex flex-col py-2 items-center text-gray text-left text-xs">
+                            <label for="name" class="self-start p-1">Vardas <span class="text-red">*</span></label>
+                            <input type="text" v-model="name" id="name" class="w-full h-8 p-2 bg-gray_light rounded" />
+                        </div>
+                        <div class="flex flex-col py-2 items-center text-gray text-left text-xs">
+                            <label for="email" class="self-start p-1">El. paštas <span class="text-red">*</span></label>
+                            <input type="email" v-model="email" id="email" class="w-full h-8 p-2 bg-gray_light rounded" />
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="pl-9 pb-1 text-lg">Administracinės teisės:</h2>
+                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.edit_employees" class="mr-4"> <span> Readaguoti ir kurti kontaktus</span> </div>
+                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.delete_employees" class="mr-4"> <span> Trinti kontaktus</span> </div>
+                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.edit_companies" class="mr-4"> <span> Readaguoti ir kurti įmones</span> </div>
+                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.delete_companies" class="mr-4"> <span> Trinti įmones</span> </div>
+                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.edit_offices" class="mr-4"> <span> Readaguoti ir kurti ofisus</span> </div>
+                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.delete_offices" class="mr-4"> <span> Trinti ofisus</span> </div>
+                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.edit_structure" class="mr-4"> <span> Readaguoti ir kurti struktūras</span> </div>
+                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.delete_structure" class="mr-4"> <span> Trinti struktūras</span> </div>
+                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.read_permissions" class="mr-4"> <span> Skaityti admin paskyras</span> </div>
+                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.edit_permissions" class="mr-4"> <span> Readaguoti ir kurti administracines teises</span> </div>
+                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.delete_permissions" class="mr-4"> <span> Trinti admin paskyras</span> </div>
+                    </div>
+                </div>
+                <div class="flex justify-center items-center w-100%">
+                    <button v-if="getEditMode" class="w-32 h-8 mt-8 bg-secondary text-white hover:bg-primary rounded" @click="submit">Atnaujinti</button>
+                    <button v-else class="w-32 h-8 mt-8 bg-secondary text-white hover:bg-primary rounded" @click="submit">Pridėti</button>
+                </div>
+            </div>
             <div v-else>
                 <h1 v-if="getEditMode" class="text-2xl">Readaguoti kontaktą</h1>
                 <h1 v-else class="text-2xl">Įvesti naują kontaktą</h1>
@@ -54,32 +88,32 @@
                         <h1 class="text-center">Įmonės detalės</h1>
                         <div class="py-2"> 
                             <p class="text-xs p-1 text-gray">Įmonė <span class="text-red">*</span></p>
-                            <select name="company" id="Company" v-model="selectedCompany" class="w-72 h-9 p-2 bg-white rounded border border-neutral-200 shadow text-xs" >
-                                <option v-for="company in getCompanies.items" :key="company.id" :value="company" :Selected="company.id===getEmployee.company_id?'selected':false">{{ company.name }}</option>
+                            <select name="company" id="Company" v-model="structureData.company_id" class="w-72 h-9 p-2 bg-white rounded border border-neutral-200 shadow text-xs" >
+                                <option v-for="company in getCompanies.items" :key="company.id" :value="company.id" :Selected="company.id===getEmployee.company_id?'selected':false">{{ company.name }}</option>
                             </select>
                         </div>
                         <div class="py-2"> 
                             <p class="text-xs p-1 text-gray">Padalinys</p>
-                            <select name="department" id="Department" v-model="selectedDepartment" class="w-72 h-9 p-2 bg-white rounded border border-neutral-200 shadow text-xs" >
-                                <option v-for="department in getDepartments.items" :key="department.id" :value="department">{{ department.name }}</option>
+                            <select name="department" id="Department" v-model="structureData.department_id" class="w-72 h-9 p-2 bg-white rounded border border-neutral-200 shadow text-xs" >
+                                <option v-for="department in getDepartments.items" :key="department.id" :value="department.id">{{ department.name }}</option>
                             </select>
                         </div>
                         <div class="py-2">
                             <p class="text-xs p-1 text-gray">Skyrius <span class="text-red">*</span></p>
-                            <select name="division" id="Division" v-model="selectedDivision"  class="w-72 h-8 p-2 bg-white rounded border border-neutral-200 shadow text-xs" >
-                                <option v-for="division in getDivisions.items" :key="division.id" :value="division">{{ division.name }}</option>
+                            <select name="division" id="Division" v-model="structureData.division_id"  class="w-72 h-8 p-2 bg-white rounded border border-neutral-200 shadow text-xs" >
+                                <option v-for="division in getDivisions.items" :key="division.id" :value="division.id">{{ division.name }}</option>
                             </select>
                         </div>
                         <div class="py-2">
                             <p class="text-xs p-1 text-gray">Grupė</p>
-                            <select name="group" id="Group" v-model="selectedGroup" class="w-72 h-8 p-2 bg-white rounded border border-neutral-200 shadow text-xs" >
-                                <option v-for="group in getGroups.items" :key="group.id" :value="group">{{ group.name }}</option>
+                            <select name="group" id="Group" v-model="structureData.group_id" class="w-72 h-8 p-2 bg-white rounded border border-neutral-200 shadow text-xs" >
+                                <option v-for="group in getGroups.items" :key="group.id" :value="group.id">{{ group.name }}</option>
                             </select>
                         </div>
                         <div class="py-2">
                             <p class="text-xs p-1 text-gray">Ofisas <span class="text-red">*</span></p>
-                            <select name="office" id="Office" v-model="selectedOffice"  class="w-72 h-8 p-2 bg-white border rounded border-neutral-200 shadow text-xs" >
-                                <option v-for="office in getOffices.items" :key="office.id" :value="office">{{ office.name }}</option>
+                            <select name="office" id="Office" v-model="structureData.office_id"  class="w-72 h-8 p-2 bg-white border rounded border-neutral-200 shadow text-xs" >
+                                <option v-for="office in getOffices.items" :key="office.id" :value="office.id">{{ office.name }}</option>
                             </select>
                         </div>
                     </div>
@@ -107,11 +141,27 @@ export default {
             email: '',
             phone_number: '',
 
-            selectedCompany: '',
-            selectedDepartment: '',
-            selectedDivision: '',
-            selectedGroup: '',
-            selectedOffice: '',
+            structureData: {
+                company_id: '',
+                department_id: '',
+                division_id: '',
+                group_id: '',
+                office_id: '',
+            },
+            
+            adminOptions: {
+                edit_employees: false,
+                delete_employees: false,
+                edit_companies: false,
+                delete_companies: false,
+                edit_offices: false,
+                delete_offices: false,
+                edit_structure: false,
+                delete_structure: false,
+                read_permissions: false,
+                edit_permissions: false,
+                delete_permissions: false,
+            },
         }
     },
     watch: {
@@ -120,6 +170,15 @@ export default {
                 if(this.getType === 'company') {
                     const currentCompany = this.$store.getters['items/getCompany']
                     this.name = currentCompany.name
+                } else if (this.getType === 'user') {
+                    const permissions = this.$store.getters['items/getUser'].expand.permissions_id
+                    
+                    this.name = this.$store.getters['items/getUser'].username
+                    this.email = this.$store.getters['items/getUser'].email
+                    
+                    Object.keys(this.adminOptions).forEach(key => {
+                        this.adminOptions[key] = permissions[key]
+                    });
                 }
                 else{
                     const currentEmployee = this.$store.getters['items/getEmployee']
@@ -136,6 +195,8 @@ export default {
                 this.position = ''
                 this.email = ''
                 this.phone_number = ''
+
+
             }
         }
     },
@@ -164,8 +225,29 @@ export default {
                     nameEl.classList.remove('border-2');
                     return true
                 }
-            }
-            else{
+
+
+            } else if (this.getType === 'user') {
+                const elements = {
+                    nameEl: document.getElementById('name'),
+                    emailEl: document.getElementById('email'),
+                }
+
+                let failed = false
+
+                for (const [key, value] of Object.entries(elements)) {
+                    if (value.value === '') {
+                        value.classList.add('border-red');
+                        value.classList.add('border-2');
+                        failed = true
+                    } else {
+                        value.classList.remove('border-red');
+                        value.classList.remove('border-2');
+                    }
+                }
+                if (failed) return false
+                return true
+            } else {
                 const elements = {
                     nameEl: document.getElementById('name'),
                     surnameEl: document.getElementById('surname'),
@@ -206,14 +288,25 @@ export default {
                 } else {
                     this.$api.createCompany(data);
                 }
+            } else if (this.getType === 'user') {
+                let dataUser = {
+                    username: this.name,
+                    name: this.name,
+                    email: this.email,
+                }
+                const dataPermissions = this.adminOptions
+
+                if(this.getEditMode) {
+                    dataUser.id = this.$store.getters['items/getUser'].id
+                    dataPermissions.id = this.$store.getters['items/getUser'].expand.permissions_id.id
+                    this.$api.updateUser(dataUser, dataPermissions);
+                } else {
+                    this.$api.createUser(dataUser, dataPermissions);
+                }
             }
             else{
             const data = {
-                company_id: this.selectedCompany.id,
-                department_id: this.selectedDepartment.id, // optional
-                division_id: this.selectedDivision.id,
-                group_id: this.selectedGroup.id, // optional
-                office_id: this.selectedOffice.id, 
+                ...this.structureData,
                 name: this.name,
                 surname: this.surname,
                 position: this.position,

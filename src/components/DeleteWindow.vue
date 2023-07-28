@@ -8,6 +8,15 @@
                 <button @click="$api.deleteCompany(getCompany.id); toggleDeleteWindow()" class="hover:text-secondary">TAIP</button>
             </div>
         </div>
+        <div v-else-if="getType === 'user'" class="relative p-6 bg-white text-gray z-20 shadow-lg">
+            <h1 class="text-lg pb-6 text-black">Ar tikrai norite ištrinti šią admin paskyrą?</h1>
+            <p>Vardas: {{ getUser.name }}</p>
+            <p>El. paštas: {{ getUser.email }}</p>
+            <div class="flex gap-6 pt-8 text-primary float-right">
+                <button @click="toggleDeleteWindow()" class="hover:text-secondary">NE</button>
+                <button @click="$api.deleteUser(getUser.id); toggleDeleteWindow()" class="hover:text-secondary">TAIP</button>
+            </div>
+        </div>
         <div v-else class="relative p-6 bg-white text-gray z-20 shadow-lg">
             <h1 class="text-lg pb-6 text-black">Ar tikrai norite ištrinti kontaktą?</h1>
             <p>Vardas ir pavardė: {{ getEmployee.name }} {{ getEmployee.surname }}</p>
@@ -27,7 +36,7 @@ import { mapGetters, mapMutations } from 'vuex';
 export default {
     name: 'DeleteWindow',
     computed: {
-        ...mapGetters('items', ['getEmployee', 'getCompany']),
+        ...mapGetters('items', ['getEmployee', 'getCompany', 'getUser']),
         ...mapGetters('mutate', ['getShowDeleteWindow', 'getType']),
     },
     methods: {

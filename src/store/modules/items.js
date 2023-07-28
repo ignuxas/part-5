@@ -10,6 +10,8 @@ const state = {
 
     currentCompany: {},
 
+    users: [],
+    currentUser: {}
 }
 
 const getters = {
@@ -21,8 +23,23 @@ const getters = {
     getDivisions: state => state.divisions,
     getGroups: state => state.groups,
     getOffices: state => state.offices,
+    
+    getStructure: state => {
+        // check if all items are loaded
+        if (state.companies.length === 0 || state.departments.length === 0 || state.divisions.length === 0 || state.groups.length === 0 || state.offices.length === 0) return {}
+        
+        return {
+            Skyrius: state.departments.items,
+            Padalinys: state.divisions.items,
+            Grupė: state.groups.items,
+            Ofisas: state.offices.items,
+        }
+    },
 
     getCompany: state => state.currentCompany,
+
+    getUsers: state => state.users,
+    getUser: state => state.currentUser,
 }
 
 const actions = {}
@@ -37,6 +54,9 @@ const mutations = {
     setOffices(state, offices) {state.offices = offices},
 
     setCompany(state, company) {state.currentCompany = company},
+
+    setUsers(state, users) {state.users = users},
+    setUser(state, user) {state.currentUser = user},
 }
 
 export default {

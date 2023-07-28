@@ -4,9 +4,8 @@
         <div v-if="full" class="flex w-full gap-10 text-white">
             <router-link to="/contacts" class=" hover:text-gray_light">Kontaktai</router-link>
             <router-link to="/companies" class="hover:text-gray_light">Įmonės</router-link>
-            <router-link to="/login" class="hover:text-gray_light">Struktūra</router-link>
-            <router-link to="/login" class="hover:text-gray_light">Būstinės</router-link>
-            <router-link to="/login" class="hover:text-gray_light">Paskyros</router-link>
+            <router-link to="/structure" class="hover:text-gray_light">Struktūra</router-link>
+            <router-link to="/users" class="hover:text-gray_light">Paskyros</router-link>
             <button v-if="Object.keys(getUser).length" class="absolute flex gap-6 right-20 top-9 justify-center items-center" @click="openOptions"> 
                 <p>{{ getUser.name }}</p>
                 <div class="flex justify-center items-center w-[40px] h-[40px] bg-white text-primary rounded-full">
@@ -17,8 +16,6 @@
                 <button class="hover:text-gray p-6">Pakeisti slaptažodį</button>
                 <button class="p-6 hover:text-gray" @click="$api.logout()">Atsijungti</button>
             </div>
-
-
         </div>
     </div>
 </template>

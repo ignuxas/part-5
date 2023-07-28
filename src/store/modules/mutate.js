@@ -1,7 +1,7 @@
 const state = {
-    showMutateWindow: false,
-    editMode: false,
-    type: '',
+    showMutateWindow: false, // false
+    editMode: false, // false
+    type: '', // ''
 
     showDeleteWindow: false,
 }
