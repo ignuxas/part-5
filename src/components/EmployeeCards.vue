@@ -62,17 +62,17 @@ export default {
     methods: {
         ...mapMutations ('mutate', ['toggleMutateWindow', 
         'toggleDeleteWindow', 'setEditMode', 'setType']),
-        ...mapMutations ('items', ['setEmployee']),
+        ...mapMutations ('items', ['setItem']),
 
         toggleMutateWindowFunc(employee) {
-            this.setType('employee');
-            this.setEmployee(employee);
+            this.setType('employees');
+            this.setItem(employee);
             this.toggleMutateWindow();
             this.setEditMode(true);
         },
         toggleDeleteWindowFunc(employee) {
-            this.setType('employee');
-            this.setEmployee(employee);
+            this.setType('employees');
+            this.setItem(employee);
             this.toggleDeleteWindow();
         }
     }

@@ -3,7 +3,7 @@ const state = {
     editMode: false, // false
     type: '', // ''
 
-    showDeleteWindow: false,
+    showDeleteWindow: false, // false
 }
 
 const getters = {

@@ -8,6 +8,7 @@ const state = {
     groups: [],
     offices: [],
 
+    currentItem: {},
     currentCompany: {},
 
     users: [],
@@ -37,6 +38,7 @@ const getters = {
     },
 
     getCompany: state => state.currentCompany,
+    getCurrentItem: state => state.currentItem,
 
     getUsers: state => state.users,
     getUser: state => state.currentUser,
@@ -54,6 +56,7 @@ const mutations = {
     setOffices(state, offices) {state.offices = offices},
 
     setCompany(state, company) {state.currentCompany = company},
+    setItem(state, item) {state.currentItem = item},
 
     setUsers(state, users) {state.users = users},
     setUser(state, user) {state.currentUser = user},

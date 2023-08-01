@@ -16,8 +16,8 @@
                     <td class="p-4">{{ tile.name }}</td>
                     <td>{{ tile.type }}</td>
                     <td class="text-center" v-if="permissions.delete_structure || permissions.edit_structure">
-                        <button v-if="permissions.edit_structure" class="w-8 h-8 m-2 relative bg-secondary text-white rounded-3xl shadow"><font-awesome-icon :icon="['fas', 'pen']" /></button>
-                        <button v-if="permissions.delete_structure" class="w-8 h-8 m-2 relative bg-secondary text-white rounded-3xl shadow"><font-awesome-icon :icon="['fas', 'trash']" /></button>
+                        <button v-if="permissions.edit_structure" @click="openMutateWindow(tile.typeEng, tile, true)" class="w-8 h-8 m-2 relative bg-secondary text-white rounded-3xl shadow" ><font-awesome-icon :icon="['fas', 'pen']" /></button>
+                        <button v-if="permissions.delete_structure" @click="openDeleteWindow(tile.typeEng, tile)" class="w-8 h-8 m-2 relative bg-secondary text-white rounded-3xl shadow"><font-awesome-icon :icon="['fas', 'trash']" /></button>
                     </td>
                 </tr>
             </table>
@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, mapMutations } from 'vuex';
 
 export default {
     name: 'Structure',
@@ -39,7 +39,7 @@ export default {
         this.$api.getGroups();
     },
     computed: {
-        ...mapGetters('items', ['getStructure']),
+        ...mapGetters('items', ['getStructure', 'getCurrentItem']),
         ...mapGetters('user', ['permissions']),
 
         tiles:function(){
@@ -47,13 +47,33 @@ export default {
             for (const [key, value] of Object.entries(this.getStructure)) { // key = companies, value = state.companies
                 for (const [key2, value2] of Object.entries(value)) { // key2 = items, value2 = state.companies.items
                     tiles.push({
-                        name: value2.name,
+                        // push everything
+                        ...value2,
+                        typeEng: value2.collectionName, //collectionName
                         type: key
                     });
                 }
             }
             return tiles;
-        }
+        },
     },
+    methods: {
+        ...mapMutations('mutate', ['toggleMutateWindow', 'toggleDeleteWindow', 'setType', 'setEditMode']),
+        ...mapMutations('items', ['setItem']),
+
+        openMutateWindow(typeEng, item, editMode=false) {
+            console.log(typeEng)
+
+            if(item) this.setItem(item);
+            this.setType(typeEng);
+            this.setEditMode(editMode);
+            this.toggleMutateWindow(true);
+        },
+        openDeleteWindow(typeEng, item) {
+            this.setType(typeEng);
+            this.setItem(item);
+            this.toggleDeleteWindow(true);
+        }
+    }
 }
 </script>
