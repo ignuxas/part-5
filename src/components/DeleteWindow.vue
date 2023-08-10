@@ -6,7 +6,7 @@
             <p>El. paštas: {{ getUser.email }}</p>
             <div class="flex gap-6 pt-8 text-primary float-right">
                 <button @click="toggleDeleteWindow()" class="hover:text-secondary">NE</button>
-                <button @click="$api.reqDelete(getType, getUser.id); toggleDeleteWindow()" class="hover:text-secondary">TAIP</button>
+                <button @click="$api.reqDelete(getUser.id, 'users'); toggleDeleteWindow()" class="hover:text-secondary">TAIP</button>
             </div>
         </div>
         <div v-else-if="getType === 'employees'" class="relative p-6 bg-white text-gray z-20 shadow-lg">

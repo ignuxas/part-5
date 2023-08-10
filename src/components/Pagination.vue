@@ -1,5 +1,5 @@
 <template>
-    <div class="relative flex p-6 gap-6 items-center justify-center width=[100%] text-white"> <!-- Pagination -->
+    <div class="relative flex p-6 gap-6 items-center justify-center width=[100%] text-white" v-if="getTotalPages !== 0"> <!-- Pagination -->
         <button @click="decrementPage" class="w-72 h-9 px-6 bg-secondary rounded justify-between items-center inline-flex"><font-awesome-icon :icon="['fas', 'angles-left']" /> PRAEITAS PUSLAPIS</button>
         <span class="text-black">{{ getCurrentPage }} / {{ getTotalPages }}</span>
         <button @click="incrementPage" class="w-72 h-9 px-6 bg-secondary rounded justify-between items-center flex">KITAS PUSLAPIS <font-awesome-icon :icon="['fas', 'angles-right']" /></button>

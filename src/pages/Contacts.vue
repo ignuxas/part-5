@@ -3,7 +3,6 @@
         <div class="w-[100%] h-20 text-black text-opacity-90 text-6xl font-light leading-10">Kontaktų sistema</div> <!-- Header -->
         <div id="UtilityBar" class="flex gap-8 text-white">
             <Search />
-            <button class="w-20 h-14 relative bg-sky-700 rounded-3xl shadow"><font-awesome-icon :icon="['fas', 'filter']" /></button>
             <button @click="toggleTableView()" class="w-20 h-14 relative bg-sky-700 rounded-3xl shadow text-xl">
                 <font-awesome-icon v-if= "isTableView" :icon="['fas', 'th']" />
                 <font-awesome-icon v-else :icon="['fas', 'list']" />

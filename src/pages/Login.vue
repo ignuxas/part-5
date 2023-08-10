@@ -2,7 +2,7 @@
     <div class="absolute flex items-center justify-center text-center left-0 top-0 h-[100vh] w-[100vw] bg-primary">
         <BackButton />
         <div v-if="changePassword" class="p-12 w-auto h-auto absolute bg-white shadow">
-            <h1 class="text-3xl pb-8">Priminti slaptažodį:</h1>
+            <h1 class="text-3xl pb-8">Pakeisti slaptažodį:</h1>
             <div class="flex flex-col items-center text-gray text-left text-xs">
                 <label for="emailChange"  class="self-start p-1">Elektroninis paštas:</label>
                 <input type="text" v-model="changePasswordEmail" id="emailChange" class="w-full h-8 p-2 bg-gray_light rounded" />
@@ -42,6 +42,11 @@ export default {
             email: '',
             password: '',
             changePasswordEmail: '',
+        }
+    },
+    mounted() {
+        if(this.$route.query.change) {
+            this.changePassword = true;
         }
     },
     methods: {

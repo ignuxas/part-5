@@ -1,4 +1,11 @@
 <template>
+<div v-if="!getEmployees.items" class="text-center py-12">   
+    <h1>Nerasta kontaktų</h1>
+</div>
+<div v-else-if="!getEmployees.items.length" class="text-center py-12">
+    <h1>Nerasta kontaktų</h1>
+</div>
+<div v-else>
     <div v-if="isTableView" class="grid grid-cols-4 gap-4">
         <div v-for="employee in getEmployees.items" class="relative flex flex-col w-96 bg-white rounded shadow p-7 gap-[20px]">
             <div class="flex items-center gap-5"> <!-- header -->
@@ -9,7 +16,7 @@
                 </div>
             </div>
             <div class="flex flex-col justify-center gap-[10px]"> <!-- content -->
-                <div class="w-72 text-black text-opacity-90 text-base font-normal leading-normal tracking-wide">Telefono nr: {{ employee.phone_number }}</div>
+                <div class="w-72 text-black text-opacity-90 text-base font-normal leading-normal tracking-wide" v-if="employee.phone_number">Telefono nr: {{ employee.phone_number }}</div>
                 <div class="w-72 text-black text-opacity-90 text-base font-normal leading-normal tracking-wide">El. paštas: {{ employee.email }}</div>
                 <div :class="(permissions.edit_employees || permissions.delete_employees ? 'w-56 ':'') + 'text-black text-opacity-90 text-base font-normal leading-normal tracking-wide'">Adresas: {{ employee.expand.office_id.name }}</div>
             </div>
@@ -32,8 +39,12 @@
                     Modifikacija
                 </th>
             </tr>
-            <tr v-for="employee in getEmployees.items" class="border-gray_light border-b-2">
-                <td class="p-4">{{ employee.name }} {{ employee.surname }}</td>
+            <tr v-for="employee in getEmployees.items" class="bgdarkgrayhover border-gray_light border-b-2">
+                <td class="p-4">
+                    <router-link :to="'/contacts/details/'+employee.id">
+                    {{ employee.name }} {{ employee.surname }}
+                    </router-link>
+                </td>
                 <td>{{ employee.position }}</td>
                 <td>{{ employee.phone_number }}</td>
                 <td>{{ employee.email }}</td>
@@ -45,6 +56,7 @@
             </tr>
         </table>
     </div>
+</div>
 </template>
 
 <script>
@@ -54,7 +66,7 @@ export default {
     name: 'PersonCards',
     computed: {
         ...mapGetters('page', ['isTableView']),
-        ...mapGetters('items', ['getEmployees', 'getCompanyById']),
+        ...mapGetters('items', ['getEmployees']),
         ...mapGetters('user', [
             'permissions'
         ]),

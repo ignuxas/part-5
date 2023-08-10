@@ -1,4 +1,5 @@
 import axios from 'axios'
+import items from '../store/modules/items'
 
 export const api = {}
 
@@ -34,6 +35,12 @@ const toggleStatus = (status) => api.store.commit('page/toggleStatus', status)
 //  GENERAL USE FUNCTIONS
 // ------------------------
 
+function unPlurafy (string) {
+    if(string.endsWith('ies')) return string.slice(0, -3) + 'y'
+    else if(string.endsWith('s')) return string.slice(0, -1)
+    else return string
+}
+
 api.reqDelete = async function (id, type) {
     const token = api.store.getters['user/getToken']
 
@@ -42,7 +49,9 @@ api.reqDelete = async function (id, type) {
         { headers: { Authorization: `Bearer ${token}` } })
         toggleStatus(response.status)
 
-        if(response.status !== 200) return { data: null, status: 400 }
+        //if response is ok
+        if(response.status >= 200 && response.status < 300) {/*continue*/}
+        else { throw new Error(response.status) }
 
         if(type === 'employees') api.getEmployees()
         else if(type === 'companies') api.getCompanies()
@@ -50,6 +59,7 @@ api.reqDelete = async function (id, type) {
         else if(type === 'divisions') api.getDivisions()
         else if(type === 'groups') api.getGroups()
         else if(type === 'offices') api.getOffices()
+        else if(type === 'users') api.getUsers()
 
         return { data: response.data, status: response.status }
     }
@@ -58,6 +68,99 @@ api.reqDelete = async function (id, type) {
         return { data: null, status: 400 }
     }
 }
+
+api.createRelation = async function (relation, id, relationName, type) {
+    const token = api.store.getters['user/getToken']
+
+    try {
+        const response = await api.http.post(`/collections/${relationName}_${type}/records`, {
+            [`${unPlurafy(relationName)}_id`]: relation,
+            [`${unPlurafy(type)}_id`]: id,
+        }, { headers: { Authorization: `Bearer ${token}` } })
+        toggleStatus(response.status)
+
+        //if response is ok
+        if(response.status >= 200 && response.status < 300) { return { data: response.data, status: response.status }}
+        else { throw new Error(response.status) }
+    }
+    catch (error) {
+        console.log(error)
+        toggleStatus(400)
+        return { data: null, status: 400 }
+    }
+}
+
+api.reqUpdateStructure = async function (data, relations, type) {
+    const token = api.store.getters['user/getToken']
+    const item = api.store.getters['items/getCurrentItem']
+
+    const id = item.id
+
+    try { 
+        const response = await api.http.patch(`/collections/${type}/records/${id}`, data,
+        { headers: { Authorization: `Bearer ${token}` } })
+        
+        let responses = [response.status]
+
+        // if relations are different, delete all relations and add new ones
+        let promise = new Promise( async (resolve, reject) =>
+            Object.keys(item.relations).forEach(async relationName => {
+            const currentRelationsList = item.relations[relationName].map(relation => relation[`${unPlurafy(relationName)}_id`])
+            if(JSON.stringify(currentRelationsList) !== JSON.stringify(relations)) { // doesn't work because one of the arrays has an observer
+                for (const relation of item.relations[relationName]){ // delete all relations
+                    const delRes = await api.reqDelete(relation.id, `${relationName}_${type}`)
+                    responses.push(delRes.status)
+                }
+
+                for (const relation of relations){ // add new relations
+                    const addRes = await api.createRelation(relation, id, relationName, type)
+                    responses.push(addRes.status)
+                }
+            }
+            resolve(responses)
+        }))
+
+        responses = await promise
+        if(responses.every((val) => val >= 200 && val < 300)) {
+            console.log('all responses ok,', type)
+            if(type === 'employees') await api.getEmployees()
+            else if(type === 'companies') await api.getCompanies()
+            else if(type === 'departments') await api.getDepartments()
+            else if(type === 'divisions') await api.getDivisions()
+            else if(type === 'groups') await api.getGroups()
+            else if(type === 'offices') await api.getOffices()
+            else if(type === 'users') await api.getUsers()
+        } else { throw new Error(responses) }
+    }
+    catch (error) {
+        console.log(error)
+        toggleStatus(400)
+        return { data: null, status: 400 }
+    }
+}
+
+api.getRelationsFunction = async function (id, type, relationName, setFunc, reverse = false, getFunc) {
+    const token = api.store.getters['user/getToken']
+    const relationsList = { items: [] }
+
+    if(!id) return getFunc()
+
+    try {
+        
+        let realtionsRes = null
+        if(!reverse) realtionsRes = await api.http.get(`/collections/${type}/records/${id}?expand=${relationName}_${type}(${unPlurafy(type)}_id).${unPlurafy(relationName)}_id`, { headers: { Authorization: `Bearer ${token}` } })
+        else realtionsRes = await api.http.get(`/collections/${type}/records/${id}?expand=${type}_${relationName}(${unPlurafy(type)}_id).${unPlurafy(relationName)}_id`, { headers: { Authorization: `Bearer ${token}` } })
+        
+        let relations = null
+        if(!reverse) relations = realtionsRes.data.expand[`${relationName}_${type}(${unPlurafy(type)}_id)`]
+        else relations = realtionsRes.data.expand[`${type}_${relationName}(${unPlurafy(type)}_id)`]
+        
+        relations.forEach(relation => { relationsList.items.push(relation.expand[`${unPlurafy(relationName)}_id`]) })
+        setFunc(relationsList)
+
+    } catch (error) {console.log(error); setFunc({items: []})}
+}
+       
 
 // ------------------------
 //       GET CALLS 
@@ -84,7 +187,7 @@ api.getEmployees = async function () {
     const params = {
         expand: 'office_id,company_id,department_id,division_id,group_id',
         page, perPage,
-        // pocketbase - trash filtering system: doesn't except empty values, can't use && with no end and other dumb stuff
+        // pocketbase - trash filtering system: doesn't except empty values, can't use && with nothing after it and other dumb stuff
         filter: filterWithValuesLen || search ? '(' + Object.keys(filtersWithValues).map((key) => `${key}='${filtersWithValues[key]}'`).join('&&') + `${filterWithValuesLen?'&&':''}(email~'${search}'||name~'${search}'||surname~'${search}')` +')' : '',
     }
 
@@ -121,7 +224,6 @@ api.getUsers = async function () {
     try {
         const response = await api.http.get('/collections/users/records',
         { headers: { Authorization: `Bearer ${token}` }, params })
-        console.log(response.data)
         setUsers(response.data.items)
     } catch (error) {console.log(error)}
 }
@@ -136,34 +238,92 @@ api.getCompanies = async function () {
 
 api.getDepartments = async function () {
     try {
-        const response = await api.http.get('/collections/departments/records',
-        { headers })
-        setDepartments(response.data)
+        const response = await api.http.get('/collections/departments/records', { headers })
+        if(response.status >= 200 && response.status < 300) {
+            let departments = response.data
+            // get divisions & attach them to departments
+            const params = { fields: 'department_id,division_id,id' }
+            let divisions = await api.http.get('/collections/divisions_departments/records', { headers, params })
+            divisions = divisions.data.items
+            departments.items.forEach(department => {
+                department.relations = {}
+                department.relations.divisions = divisions.filter(division => division.department_id === department.id)
+            })
+            setDepartments(departments)
+        }
     } catch (error) {console.log(error)}
 }
 
 api.getDivisions = async function () {
     try {
-        const response = await api.http.get('/collections/divisions/records',
-        { headers })
-        setDivisions(response.data)
+        const response = await api.http.get('/collections/divisions/records', { headers })
+        if(response.status >= 200 && response.status < 300) {
+            let divisions = response.data
+            // get offices & attach them to divisions
+            const params = { fields: 'division_id,office_id,id' }
+            let offices = await api.http.get('/collections/offices_divisions/records', { headers, params })
+            offices = offices.data.items
+            divisions.items.forEach(division => {
+                division.relations = {}
+                division.relations.offices = offices.filter(office => office.division_id === division.id)
+            })
+            setDivisions(divisions)
+        }
     } catch (error) {console.log(error)}
 }
 
 api.getGroups = async function () {
     try {
-        const response = await api.http.get('/collections/groups/records',
-        { headers })
-        setGroups(response.data)
+        const response = await api.http.get('/collections/groups/records', { headers })
+        if(response.status >= 200 && response.status < 300) {
+            let groups = response.data
+            // get departments & attach them to groups
+            const params = { fields: 'group_id,department_id,id' }
+            let departments = await api.http.get('/collections/departments_groups/records', { headers, params })
+            departments = departments.data.items
+            groups.items.forEach(group => {
+                group.relations = {}
+                group.relations.departments = departments.filter(department => department.group_id === group.id)
+            })
+            setGroups(groups)
+        }
+
     } catch (error) {console.log(error)}
 }
 
 api.getOffices = async function () {
     try {
-        const response = await api.http.get('/collections/offices/records',
-        { headers })
-        setOffices(response.data)
+        const response = await api.http.get('/collections/offices/records', { headers })
+        if(response.status >= 200 && response.status < 300) {
+            let offices = response.data
+            // get companies & attach them to offices
+            const params = { fields: 'office_id,company_id,id' }
+            let companies = await api.http.get('/collections/companies_offices/records', { headers, params })
+            companies = companies.data.items
+            offices.items.forEach(office => {
+                office.relations = {}
+                office.relations.companies = companies.filter(company => company.office_id === office.id)
+            })
+            setOffices(offices)
+        }
     } catch (error) {console.log(error)}
+}
+
+api.updateFilters = async function (id, type) {
+    if(type === 'offices') {
+        api.getRelationsFunction(id, type, 'companies', setCompanies, false, api.getCompanies)
+        api.getRelationsFunction(id, type, 'divisions', setDivisions, true, api.getDivisions)
+    } else if(type === 'divisions') {
+        api.getRelationsFunction(id, type, 'offices', setOffices, false, api.getOffices)
+        api.getRelationsFunction(id, type, 'departments', setDepartments, true, api.getDepartments)
+    } else if(type === 'departments') {
+        api.getRelationsFunction(id, type, 'divisions', setDivisions, false, api.getDivisions)
+        api.getRelationsFunction(id, type, 'groups', setGroups, true, api.getGroups)
+    } else if ( type === 'groups' ) {
+        api.getRelationsFunction(id, type, 'departments', setDepartments, false, api.getDepartments)
+    } else if ( type === 'companies' ) {
+        api.getRelationsFunction(id, type, 'offices', setOffices, true, api.getOffices)
+    } 
 }
 
 // ------------------------
@@ -191,7 +351,7 @@ api.login = async function (identity=null, password=null, skipCheck=false) {
         try {
             const response = await api.http.post('/collections/users/auth-with-password',
             { identity, password, }, { headers, params })
-            if(response.status === 200) {
+            if(response.status >= 200 && response.status < 300) {
                 setToken(response.data.token)
                 setUser(response.data.record)
 
@@ -244,6 +404,7 @@ api.createEmployee = async function (employee) {
 api.updateEmployee = async function (employee) {
     const token = api.store.getters['user/getToken']
 
+    console.log("data (API updateEmployee):", employee)
     try {
         const response = await api.http.patch(`/collections/employees/records/${employee.id}`,
         employee, { headers: { Authorization: `Bearer ${token}` } })
@@ -362,7 +523,7 @@ api.createUser = async function (user, permissions) {
     catch (error) {
         console.log(error)
         // delete permission if user creation fails
-        await api.sendDelReq(permissionResponse.data.id, 'user_permissions')
+        await api.reqDelete(permissionResponse.data.id, 'user_permissions')
         toggleStatus(400)
         return { data: null, status: 400 }
     }
@@ -403,19 +564,6 @@ api.updateUser = async function (user, permissions) {
 // ------------------------
 //       OFFICES
 // ------------------------
-api.createCompanyOfficeRelation = async function (company_id, office_id) {
-    const token = api.store.getters['user/getToken']
-    try {
-        const response = await api.http.post('/collections/companies_offices/records',
-        { company_id, office_id }, { headers: { Authorization: `Bearer ${token}` } })
-        return { data: response.data, status: response.status }
-    }
-    catch (error) {
-        console.log(error)
-        toggleStatus(400)
-        return { data: null, status: 400 }
-    }
-}
 
 api.createOffice = async function (office, companies) {
     const token = api.store.getters['user/getToken']
@@ -425,44 +573,19 @@ api.createOffice = async function (office, companies) {
         office, { headers: { Authorization: `Bearer ${token}` } })
 
         if(response.status !== 200) return { data: null, status: 400 }
-        
+
         let responses = [response.status]
         for (const company of companies) {
-            await api.createCompanyOfficeRelation(company, response.data.id)
-            responses.push(response.status)
+            const addRelReq = await api.createRelation(company, response.data.id, 'companies', 'offices')
+            responses.push(addRelReq.status)
         }
         
-        // if all status codes are 200
-        if(responses.every((val, i, arr) => val === arr[0])) {
-            toggleStatus(response.status)
+        // if all status codes are ok
+        if (responses.every((val) => val >= 200 && val < 300)) {
+            toggleStatus(200)
             api.getOffices()
             return { data: response.data, status: response.status }
-        } else {
-            toggleStatus(400)
-            return { data: null, status: 400 }
-        }
-    }
-    catch (error) {
-        console.log(error)
-        toggleStatus(400)
-        return { data: null, status: 400 }
-    }
-}
-
-api.updateOffice = async function (office, companies) { // UPDATE THIS <<<<<<<<<<<<<<<<<<<
-    const token = api.store.getters['user/getToken']
-
-    try {
-        const response = await api.http.patch(`/collections/offices/records/${office.id}`,
-        office, { headers: { Authorization: `Bearer ${token}` } })
-
-        if(response.status !== 200) return { data: null, status: 400 }
-
-        let responses = [response.status]
-        for (const company of companies) {
-            await api.createCompanyOfficeRelation(company, response.data.id)
-            responses.push(response.status)
-        }
+        } else { throw new Error('Error creating office') }
     }
     catch (error) {
         console.log(error)
@@ -474,18 +597,6 @@ api.updateOffice = async function (office, companies) { // UPDATE THIS <<<<<<<<<
 // ------------------------
 //      DIVISIONS
 // ------------------------
-api.createOfficeDivisionRelation = async function (office_id, division_id) {
-    const token = api.store.getters['user/getToken']
-    try {
-        const response = await api.http.post('/collections/offices_divisions/records',
-        { office_id, division_id }, { headers: { Authorization: `Bearer ${token}` } })
-        return { data: response.data, status: response.status }
-    }
-    catch (error) {
-        console.log(error)
-        return { data: null, status: 400 }
-    }
-}
 
 api.createDivision = async function (division, offices) {
     const token = api.store.getters['user/getToken']
@@ -494,55 +605,19 @@ api.createDivision = async function (division, offices) {
         const response = await api.http.post('/collections/divisions/records',
         division, { headers: { Authorization: `Bearer ${token}` } })
 
-        if(response.status !== 200) return { data: null, status: 400 }
-        
         let responses = [response.status]
+
         for (const office of offices) {
-            await api.createOfficeDivisionRelation(office, response.data.id)
-            responses.push(response.status)
+            const addRelReq = await api.createRelation(office, response.data.id, 'offices', 'divisions')
+            responses.push(addRelReq.status)
         }
 
-        // if all status codes are 200
-        if(responses.every((val, i, arr) => val === arr[0])) {
-            toggleStatus(response.status)
+        // if all status codes are ok
+        if(responses.every((val) => val >= 200 && val < 300)) {
+            toggleStatus(200)
             api.getDivisions()
             return { data: response.data, status: response.status }
-        } else {
-            toggleStatus(400)
-            return { data: null, status: 400 }
-        }
-    }
-    catch (error) {
-        console.log(error)
-        toggleStatus(400)
-        return { data: null, status: 400 }
-    }
-}
-
-api.updateDivision = async function (division, offices) {
-    const token = api.store.getters['user/getToken']
-
-    try {
-        const response = await api.http.patch(`/collections/divisions/records/${division.id}`,
-        division, { headers: { Authorization: `Bearer ${token}` } })
-
-        if(response.status !== 200) return { data: null, status: 400 }
-
-        let responses = [response.status]
-        for (const office of offices) {
-            await api.createOfficeDivisionRelation(office, response.data.id)
-            responses.push(response.status)
-        }
-
-        // if all status codes are 200
-        if(responses.every((val, i, arr) => val === arr[0])) {
-            toggleStatus(response.status)
-            api.getDivisions()
-            return { data: response.data, status: response.status }
-        } else {
-            toggleStatus(400)
-            return { data: null, status: 400 }
-        }
+        } else { throw new Error('Division creation failed') }
     }
     catch (error) {
         console.log(error)
@@ -555,19 +630,6 @@ api.updateDivision = async function (division, offices) {
 //      DEPARTMENTS
 // ------------------------
 
-api.createDivisionDepartmentRelation = async function (division_id, department_id) {
-    const token = api.store.getters['user/getToken']
-    try {
-        const response = await api.http.post('/collections/divisions_departments/records',
-        { division_id, department_id }, { headers: { Authorization: `Bearer ${token}` } })
-        return { data: response.data, status: response.status }
-    }
-    catch (error) {
-        console.log(error)
-        return { data: null, status: 400 }
-    }
-}
-
 api.createDepartment = async function (department, divisions) {
     const token = api.store.getters['user/getToken']
 
@@ -575,78 +637,27 @@ api.createDepartment = async function (department, divisions) {
         const response = await api.http.post('/collections/departments/records',
         department, { headers: { Authorization: `Bearer ${token}` } })
 
-        if(response.status !== 200) return { data: null, status: 400 }
-        
         let responses = [response.status]
         for (const division of divisions) {
-            await api.createDivisionDepartmentRelation(division, response.data.id)
-            responses.push(response.status)
+            const addRelReq = await api.createRelation(division, response.data.id, 'divisions', 'departments')
+            responses.push(addRelReq.status)
         }
 
-        // if all status codes are 200
-        if(responses.every((val, i, arr) => val === arr[0])) {
-            toggleStatus(response.status)
+        // if all status codes are ok
+        if(responses.every((val) => val >= 200 && val < 300)) {
+            toggleStatus(200)
             api.getDepartments()
             return { data: response.data, status: response.status }
-        } else {
-            toggleStatus(400)
-            return { data: null, status: 400 }
-        }
-    }
-    catch (error) {
+        } else { throw new Error('Department creation failed') } 
+    } catch (error) {
         console.log(error)
         toggleStatus(400)
         return { data: null, status: 400 }
     }
 }
-
-api.updateDepartment = async function (department, divisions) {
-    const token = api.store.getters['user/getToken']
-
-    try {
-        const response = await api.http.patch(`/collections/departments/records/${department.id}`,
-        department, { headers: { Authorization: `Bearer ${token}` } })
-
-        if(response.status !== 200) return { data: null, status: 400 }
-
-        let responses = [response.status]
-        for (const division of divisions) {
-            await api.createDivisionDepartmentRelation(division, response.data.id)
-            responses.push(response.status)
-        }
-
-        // if all status codes are 200
-        if(responses.every((val, i, arr) => val === arr[0])) {
-            toggleStatus(response.status)
-            api.getDepartments()
-            return { data: response.data, status: response.status }
-        } else {
-            toggleStatus(400)
-            return { data: null, status: 400 }
-        }
-    }
-    catch (error) {
-        console.log(error)
-        toggleStatus(400)
-        return { data: null, status: 400 }
-    }
-}
-
 // ------------------------
 //      GROUPS
 // ------------------------
-api.createDepartmentGroupRelation = async function (department_id, group_id) {
-    const token = api.store.getters['user/getToken']
-    try {
-        const response = await api.http.post('/collections/departments_groups/records',
-        { department_id, group_id }, { headers: { Authorization: `Bearer ${token}` } })
-        return { data: response.data, status: response.status }
-    }
-    catch (error) {
-        console.log(error)
-        return { data: null, status: 400 }
-    }
-}
 
 api.createGroup = async function (group, departments) {
     const token = api.store.getters['user/getToken']
@@ -655,55 +666,18 @@ api.createGroup = async function (group, departments) {
         const response = await api.http.post('/collections/groups/records',
         group, { headers: { Authorization: `Bearer ${token}` } })
 
-        if(response.status !== 200) return { data: null, status: 400 }
-
         let responses = [response.status]
         for (const department of departments) {
-            await api.createDepartmentGroupRelation(department, response.data.id)
-            responses.push(response.status)
+            const addRelReq = await api.createRelation(department, response.data.id, 'departments', 'groups')
+            responses.push(addRelReq.status)
         }
 
-        // if all status codes are 200
-        if(responses.every((val, i, arr) => val === arr[0])) {
-            toggleStatus(response.status)
+        // if all status codes are ok
+        if(responses.every((val) => val >= 200 && val < 300)) {
+            toggleStatus(200)
             api.getGroups()
             return { data: response.data, status: response.status }
-        } else {
-            toggleStatus(400)
-            return { data: null, status: 400 }
-        }
-    }
-    catch (error) {
-        console.log(error)
-        toggleStatus(400)
-        return { data: null, status: 400 }
-    }
-}
-
-api.updateGroup = async function (group, departments) {
-    const token = api.store.getters['user/getToken']
-    
-    try {
-        const response = await api.http.patch(`/collections/groups/records/${group.id}`,
-        group, { headers: { Authorization: `Bearer ${token}` } })
-
-        if(response.status !== 200) return { data: null, status: 400 }
-
-        let responses = [response.status]
-        for (const department of departments) {
-            await api.createDepartmentGroupRelation(department, response.data.id)
-            responses.push(response.status)
-        }
-
-        // if all status codes are 200
-        if(responses.every((val, i, arr) => val === arr[0])) {
-            toggleStatus(response.status)
-            api.getGroups()
-            return { data: response.data, status: response.status }
-        } else {
-            toggleStatus(400)
-            return { data: null, status: 400 }
-        }
+        } else { throw new Error('Group creation failed') }
     }
     catch (error) {
         console.log(error)

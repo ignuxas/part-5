@@ -9,7 +9,7 @@ const state = {
 
     currentPage: 1,
     postsPerPage: 25,
-    totalPages: 1,
+    totalPages: 0,
     search: '',
 
     status: 200,

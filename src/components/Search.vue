@@ -19,7 +19,6 @@ export default {
     methods: {
         ...mapMutations('page', ['setSearch']),
         search() { 
-            console.log(this.searchInput)
             this.setSearch(this.searchInput)
             this.$api.getEmployees();
             //this.$api.searchEmployees(this.searchInput);

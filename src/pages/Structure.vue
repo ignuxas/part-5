@@ -3,7 +3,7 @@
         <div class="flex flex-col">
             <div class="w-[100%] h-20 text-black text-opacity-90 text-6xl font-light leading-10">Struktūra</div> <!-- Header -->
             <div id="UtilityBar" v-if="permissions.edit_structure" class="flex gap-8 text-white items-center">
-                <button class="w-20 h-14 relative bg-sky-700 rounded-3xl shadow"><font-awesome-icon :icon="['fas', 'plus']" /></button>
+                <button class="w-20 h-14 relative bg-sky-700 rounded-3xl shadow" @click="openMutateWindow('structures')"><font-awesome-icon :icon="['fas', 'plus']" /></button>
                 <span class="text-black text-xl">Sukurti naują struktūrą</span>
             </div>
             <table class="shadow mt-8">

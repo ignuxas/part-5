@@ -83,7 +83,7 @@
                         <h1 class="text-center">Įmonės</h1>
                         <div class="py-2"> 
                             <div class="flex p-2" v-for="company in getCompanies.items">
-                                <input type="checkbox" v-model="company.checked" class="mr-4"> <span>{{ company.name }}</span>
+                                <input type="checkbox" :value="company.id" v-model="officeData.companies" class="mr-4"> <span>{{ company.name }}</span>
                             </div>
                         </div>
                     </div>
@@ -107,7 +107,7 @@
                         <h1 class="text-center">Ofisai</h1>
                         <div class="py-2"> 
                             <div class="flex p-2" v-for="office in getOffices.items">
-                                <input type="checkbox" v-model="office.checked" class="mr-4"> <span>{{ office.name }}</span>
+                                <input type="checkbox" :value="office.id" v-model="divisionData.offices" class="mr-4"> <span>{{ office.name }}</span>
                             </div>
                         </div>
                     </div>
@@ -131,7 +131,7 @@
                         <h1 class="text-center">Padaliniai</h1>
                         <div class="py-2"> 
                             <div class="flex p-2" v-for="division in getDivisions.items">
-                                <input type="checkbox" v-model="division.checked" class="mr-4"> <span>{{ division.name }}</span>
+                                <input type="checkbox" :value="division.id" v-model="departmentData.divisions" class="mr-4"> <span>{{ division.name }}</span>
                             </div>
                         </div>
                     </div>
@@ -155,7 +155,7 @@
                         <h1 class="text-center"> Skyriai </h1>
                         <div class="py-2"> 
                             <div class="flex p-2" v-for="department in getDepartments.items">
-                                <input type="checkbox" v-model="department.checked" class="mr-4"> <span>{{ department.name }}</span>
+                                <input type="checkbox" :value="department.id" v-model="groupData.departments" class="mr-4"> <span>{{ department.name }}</span>
                             </div>
                         </div>
                     </div>
@@ -165,7 +165,16 @@
                     <button v-else class="w-32 h-8 mt-8 bg-secondary text-white hover:bg-primary rounded" @click="submit">Pridėti</button>
                 </div>
             </div>
-            <div v-else>
+            <div v-else-if="getType === 'structures'">
+                <h1 class="text-2xl pb-6 text-center">Sukurti struktūrą</h1>
+                <div class="flex gap-2 text-white">
+                    <button class="p-6 bg-secondary" @click="setType('departments')">Skyrius</button>
+                    <button class="p-6 bg-secondary" @click="setType('divisions')">Padalinys</button>
+                    <button class="p-6 bg-secondary" @click="setType('groups')">Grupė</button>
+                    <button class="p-6 bg-secondary" @click="setType('offices')">Ofisas</button>
+                </div>
+            </div>
+            <div v-else> <!-- Employees -->
                 <h1 v-if="getEditMode" class="text-2xl">Readaguoti kontaktą</h1>
                 <h1 v-else class="text-2xl">Įvesti naują kontaktą</h1>
                 <div class="flex gap-10">
@@ -182,6 +191,12 @@
                             <div class="flex py-2 flex-col items-center text-gray text-left text-xs">
                                 <label for="position" class="self-start p-1">Pozicija <span class="text-red">*</span></label>
                                 <input type="text" v-model="position" id="position" class="w-full h-8 p-2 bg-gray_light rounded" />
+                            </div>
+                            <div class="py-2">
+                                <div class="flex flex-col py-2 items-center text-gray text-left text-xs">
+                                    <label for="photo" class="self-start p-1">Nuotrauka</label>
+                                    <input type="file" id="photo" @change="manageFiles" class=" w-full h-8 p-[5px] bg-gray_light rounded" />
+                                </div>
                             </div>
                         </div>
                         <div class="pt-4 pb-2">
@@ -249,6 +264,7 @@ const defaultStructure = {
     position: '',
     email: '',
     phone_number: '',
+    photo: null,
 
     structureData: {
         name: '',
@@ -264,16 +280,20 @@ const defaultStructure = {
         street_number: '',
         city: '',
         country: '',
+        companies: [],
     },
 
     divisionData: {
         name: '',
+        offices: [],
     },
     groupData: {
         name: '',
+        departments: [],
     },
     departmentData: {
         name: '',
+        divisions: [],
     },
 
     adminOptions: {
@@ -302,7 +322,7 @@ export default {
         getShowMutateWindow() {
             const item = this.$store.getters['items/getCurrentItem']
 
-            if(this.getEditMode) { // edit mode
+            if(this.getEditMode && this.getShowMutateWindow) { // edit mode
                 if (this.getType === 'user') {
                     const permissions = this.$store.getters['items/getUser'].expand.permissions_id
                     
@@ -319,15 +339,25 @@ export default {
                         street_number: item.street_number,
                         city: item.city,
                         country: item.country,
+                        companies: item.relations.companies.map(company => company.company_id)
                     }
-                }else if(this.getType === 'companies') {
+                } else if(this.getType === 'companies') {
                     this.name = item.name
                 } else if (this.getType === 'divisions') {
-                    this.divisionData = { name: item.name, }
+                    this.divisionData = { 
+                        name: item.name,
+                        offices: item.relations.offices.map(office => office.office_id)
+                    }
                 } else if (this.getType === 'departments') {
-                    this.departmentData = { name: item.name, }
+                    this.departmentData = { 
+                        name: item.name, 
+                        divisions: item.relations.divisions.map(division => division.division_id)
+                    }
                 } else if (this.getType === 'groups') {
-                    this.groupData = { name: item.name, }
+                    this.groupData = { 
+                        name: item.name,
+                        departments: item.relations.departments.map(department => department.department_id)
+                    }
                 } else {
                     this.name = item.name
                     this.surname = item.surname
@@ -344,26 +374,17 @@ export default {
                         office_id: item.expand.office_id.id,
                     }
                 }
-            } else { // create mode
+            } 
+            else if (this.getEditMode && !this.getShowMutateWindow) {}
+            else { // create mode
                 // reset data
                 Object.keys(this.$data).forEach(key => {
                    this[key] = defaultStructure[key]
                 });
 
-                // fix to automatic REEEEEEEEEEEEEEE
-                if (this.getType === 'user') {
-                    this.adminOptions = {
-                        edit_employees: false,
-                        delete_employees: false,
-                        edit_companies: false,
-                        delete_companies: false,
-                        edit_offices: false,
-                        delete_offices: false,
-                        edit_structure: false,
-                        delete_structure: false,
-                        read_permissions: false,
-                        edit_permissions: false,
-                        delete_permissions: false,
+                if (this.getType === 'user') { 
+                    for (const key in this.adminOptions) {
+                        this.adminOptions[key] = false
                     }
                 }
             }
@@ -372,16 +393,21 @@ export default {
     computed: {
         ...mapGetters('items', [
             'getCompanies', 
-            'getCompany',
             'getDepartments', 
             'getDivisions', 
             'getGroups', 
             'getOffices', 
-            'getEmployee']),
+            'getEmployee',
+            'getCurrentItem']),
         ...mapGetters('mutate', ['getShowMutateWindow', 'getEditMode', 'getType',]),
     },
     methods: {
-        ...mapMutations('mutate', ['toggleMutateWindow']),
+        ...mapMutations('mutate', ['toggleMutateWindow', 'setType']),
+
+        manageFiles(e) {
+            const files = e.target.files
+            this.photo = files[0]
+        },
 
         checkEmpty(list) {
             let failed = false
@@ -438,11 +464,11 @@ export default {
         },
 
         submit() {
-            if(!this.validate()) return;
-            if(this.getType === 'companies') { // COMPANY
+            if (!this.validate()) return;
+            if (this.getType === 'companies') { // COMPANY
                 let data = { name: this.name, }
                 if(this.getEditMode) {
-                    data.id = this.getCompany.id
+                    data.id = this.getCurrentItem.id 
                     this.$api.updateCompany(data);
                 } else {
                     this.$api.createCompany(data);
@@ -455,51 +481,43 @@ export default {
                 }
                 const dataPermissions = this.adminOptions
 
-                if(this.getEditMode) {
+                if (this.getEditMode) {
                     dataUser.id = this.$store.getters['items/getUser'].id
                     dataPermissions.id = this.$store.getters['items/getUser'].expand.permissions_id.id
-                    this.$api.updateUser(dataUser, dataPermissions);
-                } else {
-                    this.$api.createUser(dataUser, dataPermissions);
                 }
+                this.$api.createUser(dataUser, dataPermissions);
+
             } else if (this.getType === 'offices') { // OFFICE
-                let data = { ...this.officeData, }
-                let companies = this.getCompanies.items.filter(company => company.checked).map(company => company.id)
-                if(this.getEditMode) {
-                    data.id = this.$store.getters['items/getCurrentItem'].id
-                    this.$api.updateOffice(data, companies);
-                } else {
-                    this.$api.createOffice(data, companies);
-                }
+                let data = this.officeData
+                let companies = data.companies
+                if (this.getEditMode) { 
+                    data.id = this.getCurrentItem.id 
+                    this.$api.reqUpdateStructure(data, companies, 'offices');
+                } else { this.$api.createOffice(data, companies); }
+
             } else if (this.getType === 'divisions') { // DIVISION
                 let data = this.divisionData
-                let offices = this.getOffices.items.filter(office => office.checked).map(office => office.id)
-                if(this.getEditMode) { // todo: fix
-                    data.id = this.$store.getters['items/getCurrentItem'].id
-                    console.log(data.id)
-                    this.$api.updateDivision(data, offices);
-                } else {
-                    this.$api.createDivision(data, offices);
-                }
+                let offices = data.offices
+                if (this.getEditMode) { data.id = this.$store.getters['items/getCurrentItem'].id
+                    this.$api.reqUpdateStructure(data, offices, 'divisions');
+                } else { this.$api.createDivision(data, offices); }
+
             } else if (this.getType === 'departments') { // DEPARTMENT
                 let data = this.departmentData
-                let divisions = this.getDivisions.items.filter(division => division.checked).map(division => division.id)
-                console.log(data, divisions)
-                if(this.getEditMode) { // todo: fix
-                    data.id = this.$store.getters['items/getCurrentItem'].id
-                    this.$api.updateDepartment(data, divisions);
-                } else {
-                    this.$api.createDepartment(data, divisions);
-                }
+                let divisions = data.divisions
+                if (this.getEditMode) { 
+                    data.id = this.getCurrentItem.id 
+                    this.$api.reqUpdateStructure(data, divisions, 'departments');
+                } else { this.$api.createDepartment(data, divisions); }
+
             } else if (this.getType === 'groups') { // GROUP
                 let data = this.groupData
-                let divisions = this.getDivisions.items.filter(division => division.checked).map(division => division.id)
-                if(this.getEditMode) { // todo: fix
-                    data.id = this.$store.getters['items/getCurrentItem'].id
-                    this.$api.updateGroup(data, divisions);
-                } else {
-                    this.$api.createGroup(data, divisions);
-                }
+                let departments = data.departments
+                if (this.getEditMode) { 
+                    data.id = this.getCurrentItem.id 
+                    this.$api.reqUpdateStructure(data, departments, 'groups');
+                } else { this.$api.createGroup(data, departments); }
+
             } else { // EMPLOYEE
                 let data = {
                     ...this.structureData,
@@ -508,14 +526,13 @@ export default {
                     position: this.position,
                     email: this.email,
                     phone_number: this.phone_number, // optional
+                    photo: this.photo, // optional
                 }
-                console.log(this.getEditMode)
-                if(this.getEditMode) {
-                    data.id = this.$store.getters['items/getCurrentItem'].id
+                console.log("data: (Mutation)", data)
+                if(this.getEditMode) { 
+                    data.id = this.getCurrentItem.id
                     this.$api.updateEmployee(data);
-                } else {
-                    this.$api.createEmployee(data);
-                }
+                } else { this.$api.createEmployee(data); }
             }}
     }
 };

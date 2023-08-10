@@ -5,7 +5,7 @@
             <router-link to="/contacts" class=" hover:text-gray_light">Kontaktai</router-link>
             <router-link to="/companies" class="hover:text-gray_light">Įmonės</router-link>
             <router-link to="/structure" class="hover:text-gray_light">Struktūra</router-link>
-            <router-link to="/users" class="hover:text-gray_light">Paskyros</router-link>
+            <router-link to="/users" v-if="permissions.read_permissions" class="hover:text-gray_light">Paskyros</router-link>
             <button v-if="Object.keys(getUser).length" class="absolute flex gap-6 right-20 top-9 justify-center items-center" @click="openOptions"> 
                 <p>{{ getUser.name }}</p>
                 <div class="flex justify-center items-center w-[40px] h-[40px] bg-white text-primary rounded-full">
@@ -13,7 +13,12 @@
                 </div>
             </button>
             <div v-if="optionsOpen" class="absolute flex flex-col gap-4 right-20 top-24 justify-center items-center bg-white text-black rounded-lg shadow-lg">
-                <button class="hover:text-gray p-6">Pakeisti slaptažodį</button>
+                <router-link :to='{
+                    path: "login",
+                    query: { change: true }
+                }'>
+                    <button class="hover:text-gray p-6">Pakeisti slaptažodį</button>
+                </router-link>
                 <button class="p-6 hover:text-gray" @click="$api.logout()">Atsijungti</button>
             </div>
         </div>
@@ -21,7 +26,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, mapMutations } from 'vuex';
 
 export default {
     name: 'Navigation',
@@ -31,10 +36,11 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('user', ['getUser']),
+        ...mapGetters('user', ['getUser', 'permissions']),
         full () { return this.$store.getters['user/getFullNavigation']}
     },
     methods: {
+        ...mapMutations('page', ['setType']),
         openOptions() {
             this.optionsOpen = !this.optionsOpen;
         }
