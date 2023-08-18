@@ -27,16 +27,15 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex';
+import { mapGetters, mapMutations, mapActions } from 'vuex';
 
 export default {
     name: 'Structure',
-    async mounted() {
-        this.$api.getCompanies();
-        this.$api.getOffices();
-        this.$api.getDepartments();
-        this.$api.getDivisions();
-        this.$api.getGroups();
+    mounted() {
+        this.getOffices();
+        this.getDepartments();
+        this.getDivisions();
+        this.getGroups();
     },
     computed: {
         ...mapGetters('items', ['getStructure', 'getCurrentItem']),
@@ -61,14 +60,20 @@ export default {
         ...mapMutations('mutate', ['toggleMutateWindow', 'toggleDeleteWindow', 'setType', 'setEditMode']),
         ...mapMutations('items', ['setItem']),
 
-        openMutateWindow(typeEng, item, editMode=false) {
-            console.log(typeEng)
+        ...mapActions('items', [
+            'getOffices',
+            'getDepartments',
+            'getDivisions',
+            'getGroups',
+        ]),
 
+        openMutateWindow(typeEng, item, editMode=false) {
             if(item) this.setItem(item);
             this.setType(typeEng);
             this.setEditMode(editMode);
             this.toggleMutateWindow(true);
         },
+
         openDeleteWindow(typeEng, item) {
             this.setType(typeEng);
             this.setItem(item);

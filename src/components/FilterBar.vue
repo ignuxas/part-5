@@ -4,7 +4,7 @@
             <p>Įmonė</p>
             <select name="company" v-model="selectedCompany" class="w-72 h-9 bg-white rounded-lg border border-neutral-200" >
                 <option value="">Filtruoti įmones</option>
-                <option v-for="company in getCompanies.items" :key="company.id" :value="company">{{ company.name }}</option>
+                <option v-for="company in getCompanies.items" :selected="getCompanies.items.length === 1" :key="company.id" :value="company">{{ company.name }}</option>
             </select>
         </div>
         <div> 
@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import {mapGetters, mapMutations} from 'vuex';
+import {mapGetters, mapMutations, mapActions} from 'vuex';
 
 export default {
     name: 'FilterBar',
@@ -62,29 +62,50 @@ export default {
     watch:{
         selectedCompany: function (val) {
             this.setSelectedCompany(val);
-            this.$api.updateFilters(val.id, 'companies');
-            this.$api.getEmployees();
+            this.updateFilters({
+                id: val.id,
+                type: 'companies',
+                setFunc: this.setCompanies
+            })
+            this.getEmployeesServ();
         },
         selectedDepartment: function (val) {
             this.setSelectedDepartment(val);
-            this.$api.updateFilters(val.id, 'departments');
-            this.$api.getEmployees();
+            this.updateFilters({
+                id: val.id,
+                type: 'departments',
+                setFunc: this.setDepartments
+            })
+            this.getEmployeesServ();
         },
         selectedDivision: function (val) {
             this.setSelectedDivision(val);
-            this.$api.updateFilters(val.id, 'divisions');
-            this.$api.getEmployees();
+            this.updateFilters({
+                id: val.id,
+                type: 'divisions',
+                setFunc: this.setDivisions
+            })
+            this.getEmployeesServ();
         },
         selectedGroup: function (val) {
             this.setSelectedGroup(val);
-            this.$api.updateFilters(val.id, 'groups');
-            this.$api.getEmployees();
+            this.updateFilters({
+                id: val.id,
+                type: 'groups',
+                setFunc: this.setGroups
+            })
+            this.getEmployeesServ();
         },
         selectedOffice: function (val) {
             this.setSelectedOffice(val);
-            this.$api.updateFilters(val.id, 'offices');
-            this.$api.getEmployees();
+            this.updateFilters({
+                id: val.id,
+                type: 'offices',
+                setFunc: this.setOffices
+            })
+            this.getEmployeesServ();
         },
+
     },
     computed: {
         ...mapGetters('items', [
@@ -103,11 +124,27 @@ export default {
         ]),
     },
     methods: {
-        ...mapMutations('page', ['setSelectedCompany', 
-                                  'setSelectedDepartment', 
-                                  'setSelectedDivision', 
-                                  'setSelectedGroup', 
-                                  'setSelectedOffice']),
+        ...mapActions('general', [
+            'updateFilters',
+        ]),
+        ...mapActions('items', [
+            'getEmployeesServ',
+        ]),
+
+        ...mapMutations('page', [
+            'setSelectedCompany',                             
+            'setSelectedDepartment',               
+            'setSelectedDivision',              
+            'setSelectedGroup', 
+            'setSelectedOffice',
+        ]),
+        ...mapMutations('items', [
+            'setCompanies',
+            'setDepartments',
+            'setDivisions',
+            'setGroups',
+            'setOffices',
+        ]),
     }
 };
 </script>

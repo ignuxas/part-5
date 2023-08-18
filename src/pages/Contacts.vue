@@ -24,7 +24,7 @@ import EmployeeCards from '../components/EmployeeCards.vue';
 import Search from '../components/Search.vue';
 import FilterBar from '../components/FilterBar.vue';
 import Pagination from '../components/Pagination.vue';
-import { mapGetters, mapMutations } from 'vuex';
+import { mapGetters, mapMutations, mapActions } from 'vuex';
 
 
 export default {
@@ -36,32 +36,42 @@ export default {
         Pagination
     },
     mounted() {
-        this.$api.getEmployees();
-        this.$api.getCompanies(true);
-        this.$api.getOffices(true);
-        this.$api.getDepartments(true);
-        this.$api.getDivisions(true);
-        this.$api.getGroups(true);
-        this.$api.getOffices(true);
+        this.getEmployeesServ();
+        this.getCompaniesServ();
+        this.getOffices();
+        this.getDepartments();
+        this.getDivisions();
+        this.getGroups();
     },
     computed: {
         ...mapGetters('items', ['getEmployees']),
-        ...mapGetters('page', ['isTableView',
-                                'getCurrentPage',
-                                'getPostsPerPage',
-                                'getTotalPages']),
-        ...mapGetters('user', [
-            'permissions'
+        ...mapGetters('user', ['permissions']),
+        ...mapGetters('page', [
+            'isTableView',
+            'getCurrentPage',
+            'getPostsPerPage',
+            'getTotalPages'
         ]),
     },
     methods: {
-        ...mapMutations('page', ['toggleTableView',
-                                 'setPostsPerPage'
-                                ]),
-        ...mapMutations('mutate', ['toggleMutateWindow',
-                                   'setEditMode',
-                                    'setType'
-                                  ]),
+        ...mapMutations('page', [
+            'toggleTableView',
+            'setPostsPerPage'
+        ]),
+        ...mapMutations('mutate', [
+            'toggleMutateWindow',  
+            'setEditMode',
+            'setType'
+        ]),
+
+        ...mapActions('items', [
+            'getEmployeesServ',
+            'getCompaniesServ',
+            'getOffices',
+            'getDepartments',
+            'getDivisions',
+            'getGroups',
+        ]),
         toggleMutateWindowFunc() {
             this.setType('employee');
             this.toggleMutateWindow();

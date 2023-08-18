@@ -26,20 +26,29 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex';
+import { mapGetters, mapMutations, mapActions } from 'vuex';
 
 export default {
     name: 'Contacts',
     mounted() {
-        this.$api.getCompanies();
+        this.getCompaniesServ();
     },
     computed: {
         ...mapGetters('items', ['getCompanies']),
         ...mapGetters('user', ['permissions']),
     },
     methods: {
-        ...mapMutations('mutate', ['toggleMutateWindow', 'toggleDeleteWindow', 'setType', 'setEditMode']),
+        ...mapMutations('mutate', [
+            'toggleMutateWindow', 
+            'toggleDeleteWindow', 
+            'setType', 
+            'setEditMode']),
         ...mapMutations('items', ['setItem']),
+
+        ...mapActions('items', [
+            'getCompaniesServ',
+        ]),
+
         toggleMutateWindowFunc(type, editMode, item) {
             if(item) this.setItem(item);
             this.setEditMode(editMode);

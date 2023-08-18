@@ -19,7 +19,7 @@
                     <button v-else class="w-32 h-8 mt-8 bg-secondary text-white hover:bg-primary rounded" @click="submit">Pridėti</button>
                 </div>
             </div>
-            <div v-else-if="getType === 'user'">
+            <div v-else-if="getType === 'users'">
                 <h1 v-if="getEditMode" class="text-2xl">Readaguoti paskyrą</h1>
                 <h1 v-else class="text-2xl">Sukurti naują paskyrą</h1>
                 <div class="flex gap-10 p-2">
@@ -256,7 +256,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex';
+import { mapGetters, mapMutations, mapActions } from 'vuex';
 
 const defaultStructure = {
     name: '',
@@ -320,19 +320,19 @@ export default {
     },
     watch: {
         getShowMutateWindow() {
-            const item = this.$store.getters['items/getCurrentItem']
+            const item = this.getCurrentItem
 
             if(this.getEditMode && this.getShowMutateWindow) { // edit mode
-                if (this.getType === 'user') {
-                    const permissions = this.$store.getters['items/getUser'].expand.permissions_id
+                if (this.getType === 'users') { // -------- USER ------------
+                    const permissions = item.expand.permissions_id
                     
-                    this.name = this.$store.getters['items/getUser'].username
-                    this.email = this.$store.getters['items/getUser'].email
+                    this.name = item.username
+                    this.email = item.email
                     
                     Object.keys(this.adminOptions).forEach(key => {
                         this.adminOptions[key] = permissions[key]
                     });
-                } else if (this.getType === 'offices') {
+                } else if (this.getType === 'offices') { // -------- OFFICE ------------
                     this.officeData = {
                         name: item.name,
                         street: item.street,
@@ -341,24 +341,24 @@ export default {
                         country: item.country,
                         companies: item.relations.companies.map(company => company.company_id)
                     }
-                } else if(this.getType === 'companies') {
+                } else if(this.getType === 'companies') { // -------- COMPANY ------------
                     this.name = item.name
-                } else if (this.getType === 'divisions') {
+                } else if (this.getType === 'divisions') { // -------- DIVISION ------------
                     this.divisionData = { 
                         name: item.name,
                         offices: item.relations.offices.map(office => office.office_id)
                     }
-                } else if (this.getType === 'departments') {
+                } else if (this.getType === 'departments') { // -------- DEPARTMENT ------------
                     this.departmentData = { 
                         name: item.name, 
                         divisions: item.relations.divisions.map(division => division.division_id)
                     }
-                } else if (this.getType === 'groups') {
+                } else if (this.getType === 'groups') { // -------- GROUP ------------
                     this.groupData = { 
                         name: item.name,
                         departments: item.relations.departments.map(department => department.department_id)
                     }
-                } else {
+                } else { // -------- EMPLOYEE ------------
                     this.name = item.name
                     this.surname = item.surname
                     this.position = item.position
@@ -382,7 +382,7 @@ export default {
                    this[key] = defaultStructure[key]
                 });
 
-                if (this.getType === 'user') { 
+                if (this.getType === 'users') { 
                     for (const key in this.adminOptions) {
                         this.adminOptions[key] = false
                     }
@@ -399,10 +399,33 @@ export default {
             'getOffices', 
             'getEmployee',
             'getCurrentItem']),
-        ...mapGetters('mutate', ['getShowMutateWindow', 'getEditMode', 'getType',]),
+        ...mapGetters('mutate', [
+            'getShowMutateWindow', 
+            'getEditMode', 
+            'getType',]),
     },
     methods: {
-        ...mapMutations('mutate', ['toggleMutateWindow', 'setType']),
+        ...mapMutations('mutate', [
+            'toggleMutateWindow', 
+            'setType']),
+
+        ...mapActions('general', [
+            'updateStructure' 
+        ]),
+        ...mapActions('items', [
+            'createCompany', 
+            'updateCompany',
+            'createOffice',
+            'createDivision',
+            'createDepartment',
+            'createGroup',
+            'createEmployee',
+            'updateEmployee',
+        ]),
+        ...mapActions('user', [
+            'createUser',
+            'updateUser',
+        ]),
 
         manageFiles(e) {
             const files = e.target.files
@@ -412,7 +435,9 @@ export default {
         checkEmpty(list) {
             let failed = false
 
-            list.forEach(element => {
+            list.forEach(name => {
+                let element = document.getElementById(name)
+
                 if(element.value === '') { // if empty
                     element.classList.add('border-red');
                     element.classList.add('border-2');
@@ -426,54 +451,34 @@ export default {
             return !failed
         },
 
-        validate() {
-            if(this.getType === 'companies'){
-                const elements = [
-                    document.getElementById('name')
-            ]; return this.checkEmpty(elements)
-            } else if (this.getType === 'user') {
-                const elements = [
-                    document.getElementById('name'),
-                    document.getElementById('email'),
-                ]; return this.checkEmpty(elements)
+        validate() { //
+            let elements = []
+            if (this.getType === 'divisions' 
+                || this.getType === 'groups'
+                || this.getType === 'departments'
+                || this.getType === 'companies') {
+                elements = [ 'name' ];   
+            } else if (this.getType === 'users') {
+                elements = [ 'name', 'email' ]; 
             } else if (this.getType === 'offices') {
-                const elements = [
-                    document.getElementById('name'),
-                    document.getElementById('street'),
-                    document.getElementById('street_number'),
-                    document.getElementById('city'),
-                    document.getElementById('country'),
-                ]; return this.checkEmpty(elements)
-            } else if (this.getType === 'divisions' 
-                    || this.getType === 'groups'
-                    || this.getType === 'departments') {
-                const elements = [
-                    document.getElementById('name'),
-                ]; return this.checkEmpty(elements)       
+                elements = ['name', 'street', 'street_number', 'city', 'country'];  
             } else {
-                const elements = [
-                    document.getElementById('name'),
-                    document.getElementById('surname'),
-                    document.getElementById('position'),
-                    document.getElementById('email'),
-                    document.getElementById('Company'),
-                    document.getElementById('Division'),
-                    document.getElementById('Office'),
-                ]; return this.checkEmpty(elements)
+                elements = ['name', 'surname', 'position', 'email', 'Company', 'Division', 'Office']
             }
+            return this.checkEmpty(elements)
         },
 
         submit() {
-            if (!this.validate()) return;
-            if (this.getType === 'companies') { // COMPANY
+            if (!this.validate()) return; // if validation failed, return
+            
+            if (this.getType === 'companies') { // -------- COMPANY ------------
                 let data = { name: this.name, }
                 if(this.getEditMode) {
                     data.id = this.getCurrentItem.id 
-                    this.$api.updateCompany(data);
-                } else {
-                    this.$api.createCompany(data);
-                }
-            } else if (this.getType === 'user') { // USER
+                    this.updateCompany(data);
+                } else { this.createCompany(data); }
+
+            } else if (this.getType === 'users') { // -------- USER ------------
                 let dataUser = {
                     username: this.name,
                     name: this.name,
@@ -482,43 +487,59 @@ export default {
                 const dataPermissions = this.adminOptions
 
                 if (this.getEditMode) {
-                    dataUser.id = this.$store.getters['items/getUser'].id
-                    dataPermissions.id = this.$store.getters['items/getUser'].expand.permissions_id.id
-                }
-                this.$api.createUser(dataUser, dataPermissions);
+                    dataUser.id = this.getCurrentItem.id
+                    dataPermissions.id = this.getCurrentItem.expand.permissions_id.id
+                    this.updateUser( {user: dataUser, permissions: dataPermissions} );
+                } else this.createUser({user: dataUser, permissions: dataPermissions});
 
-            } else if (this.getType === 'offices') { // OFFICE
+            } else if (this.getType === 'offices') { // -------- OFFICE ------------
                 let data = this.officeData
-                let companies = data.companies
                 if (this.getEditMode) { 
                     data.id = this.getCurrentItem.id 
-                    this.$api.reqUpdateStructure(data, companies, 'offices');
-                } else { this.$api.createOffice(data, companies); }
+                    this.updateStructure({
+                        data: data, 
+                        relations: data.companies, 
+                        type: 'offices',
+                        item: this.getCurrentItem
+                    });
+                } else { this.createOffice({office: data, companies: data.companies}); }
 
-            } else if (this.getType === 'divisions') { // DIVISION
+            } else if (this.getType === 'divisions') { // -------- DIVISION ------------
                 let data = this.divisionData
-                let offices = data.offices
-                if (this.getEditMode) { data.id = this.$store.getters['items/getCurrentItem'].id
-                    this.$api.reqUpdateStructure(data, offices, 'divisions');
-                } else { this.$api.createDivision(data, offices); }
+                if (this.getEditMode) { data.id = this.getCurrentItem.id
+                    this.updateStructure({
+                        data: data, 
+                        relations: data.offices, 
+                        type: 'divisions',
+                        item: this.getCurrentItem
+                    });
+                } else { this.createDivision({division: data, offices: data.offices}); }
 
-            } else if (this.getType === 'departments') { // DEPARTMENT
+            } else if (this.getType === 'departments') { // -------- DEPARTMENT ------------
                 let data = this.departmentData
-                let divisions = data.divisions
                 if (this.getEditMode) { 
                     data.id = this.getCurrentItem.id 
-                    this.$api.reqUpdateStructure(data, divisions, 'departments');
-                } else { this.$api.createDepartment(data, divisions); }
+                    this.updateStructure({
+                        data, 
+                        relations: data.divisions, 
+                        type: 'departments',
+                        item: this.getCurrentItem
+                    });
+                } else { this.createDepartment({department: data, divisions: data.divisions}); }
 
-            } else if (this.getType === 'groups') { // GROUP
+            } else if (this.getType === 'groups') { // -------- GROUP ------------
                 let data = this.groupData
-                let departments = data.departments
                 if (this.getEditMode) { 
                     data.id = this.getCurrentItem.id 
-                    this.$api.reqUpdateStructure(data, departments, 'groups');
-                } else { this.$api.createGroup(data, departments); }
+                    this.updateStructure({
+                        data, 
+                        relations: data.departments, 
+                        type: 'groups',
+                        item: this.getCurrentItem
+                    });
+                } else { this.createGroup({group: data, departments: data.departments}); }
 
-            } else { // EMPLOYEE
+            } else { // -------- EMPLOYEE ------------
                 let data = {
                     ...this.structureData,
                     name: this.name,
@@ -528,11 +549,10 @@ export default {
                     phone_number: this.phone_number, // optional
                     photo: this.photo, // optional
                 }
-                console.log("data: (Mutation)", data)
                 if(this.getEditMode) { 
                     data.id = this.getCurrentItem.id
-                    this.$api.updateEmployee(data);
-                } else { this.$api.createEmployee(data); }
+                    this.updateEmployee(data);
+                } else { this.createEmployee(data); }
             }}
     }
 };

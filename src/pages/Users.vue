@@ -29,15 +29,15 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex';
+import { mapActions, mapGetters, mapMutations } from 'vuex';
 
 export default {
     name: 'Users',
     async mounted() {
-        await this.$api.login()
+        await this.login({identity: null, password: null});
         try {
-            if(this.$store.getters['user/getUser'].expand.permissions_id.read_permissions)
-                this.$api.getUsers();
+            if(this.getUser.expand.permissions_id.read_permissions)
+                this.getUsersServ();
             else this.$router.push('/')
         } catch(e) {
             this.$router.push('/')
@@ -46,21 +46,26 @@ export default {
     },
     computed: {
         ...mapGetters('user', ['permissions', 'getUser']),
-        ...mapGetters('items', ['getUsers']),
+        ...mapGetters('items', ['getUsers',]),
     },
     methods: {
         ...mapMutations('mutate', ['toggleMutateWindow', 'toggleDeleteWindow', 'setType', 'setEditMode', 'setUser']),
-        ...mapMutations('items', ['setUser']),
+        ...mapMutations('items', ['setItem']),
+
+        ...mapActions('user', [
+            'getUsersServ',
+            'login'
+        ]),
 
         toggleMutateWindowFunc(editMode=false, user) {
-            if(user) this.setUser(user);
+            if(user) this.setItem(user);
             this.setEditMode(editMode);
-            this.setType('user');
+            this.setType('users');
             this.toggleMutateWindow(true);
         },
         toggleDeleteWindowFunc(user) {
-            this.setUser(user);
-            this.setType('user');
+            this.setItem(user);
+            this.setType('users');
             this.toggleDeleteWindow(true);
         }
     }

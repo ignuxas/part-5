@@ -12,8 +12,6 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { faFilter, faList, faMagnifyingGlass, faAnglesLeft, faAnglesRight, faTh, faPlus, faPen, faTrash, faUser, faCircleCheck, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-import api from './plugins/api';
-
 library.add(faMagnifyingGlass, 
             faFilter, 
             faList, 
@@ -32,7 +30,6 @@ Vue.use(VueRouter);
 Vue.use(vueDebounce, {
     defaultTime: '500ms'
 })
-Vue.use(api, store);
 
 const router = new VueRouter({
     routes: Routes,

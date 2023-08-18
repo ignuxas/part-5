@@ -6,7 +6,7 @@
             <router-link to="/companies" class="hover:text-gray_light">Įmonės</router-link>
             <router-link to="/structure" class="hover:text-gray_light">Struktūra</router-link>
             <router-link to="/users" v-if="permissions.read_permissions" class="hover:text-gray_light">Paskyros</router-link>
-            <button v-if="Object.keys(getUser).length" class="absolute flex gap-6 right-20 top-9 justify-center items-center" @click="openOptions"> 
+            <button v-if="Object.keys(getUser).length" class="absolute flex gap-6 right-20 top-9 justify-center items-center" @click="toggleOptions"> 
                 <p>{{ getUser.name }}</p>
                 <div class="flex justify-center items-center w-[40px] h-[40px] bg-white text-primary rounded-full">
                     <font-awesome-icon :icon="['fas', 'user']" />
@@ -15,18 +15,19 @@
             <div v-if="optionsOpen" class="absolute flex flex-col gap-4 right-20 top-24 justify-center items-center bg-white text-black rounded-lg shadow-lg">
                 <router-link :to='{
                     path: "login",
-                    query: { change: true }
-                }'>
+                    query: { change: true },
+                }' @click.native = "optionsOpen = false"
+                >
                     <button class="hover:text-gray p-6">Pakeisti slaptažodį</button>
                 </router-link>
-                <button class="p-6 hover:text-gray" @click="$api.logout()">Atsijungti</button>
+                <button class="p-6 hover:text-gray" @click="() => {logout(); optionsOpen = false}">Atsijungti</button>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex';
+import { mapGetters, mapMutations, mapActions } from 'vuex';
 
 export default {
     name: 'Navigation',
@@ -36,14 +37,16 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('user', ['getUser', 'permissions']),
+        ...mapGetters('user', [
+            'getUser', 
+            'permissions'
+        ]),
         full () { return this.$store.getters['user/getFullNavigation']}
     },
     methods: {
         ...mapMutations('page', ['setType']),
-        openOptions() {
-            this.optionsOpen = !this.optionsOpen;
-        }
+        ...mapActions('user', ['logout']),
+        toggleOptions() { this.optionsOpen = !this.optionsOpen; }
     }
 };
 </script>

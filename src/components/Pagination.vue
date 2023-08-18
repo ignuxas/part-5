@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex';
+import { mapGetters, mapMutations, mapActions } from 'vuex';
 
 export default {
     name: 'Pagination',
@@ -23,24 +23,25 @@ export default {
     watch: {
         perPage() {
             this.setPostsPerPage(this.perPage);
+            this.setCurrentPage(1);
             this.$store.commit('page/setCurrentPage', 1);
-            this.$api.getEmployees();
+            this.getEmployeesServ();
         }
     },
     methods: {
         incrementPage() {
-            if(this.getCurrentPage < this.getTotalPages){
-                this.$store.commit('page/incrementPage');
-                this.$api.getEmployees();
-            }
+            this.$store.commit('page/incrementPage');
+            this.getEmployeesServ();
         },
         decrementPage() {
-            if(this.getCurrentPage > 1){
-                this.$store.commit('page/decrementPage');
-                this.$api.getEmployees();
-            }
+            this.$store.commit('page/decrementPage');
+            this.getEmployeesServ();
         },
-        ...mapMutations('page', ['setPostsPerPage']),
+        ...mapMutations('page', [
+            'setPostsPerPage',
+            'setCurrentPage',
+        ]),
+        ...mapActions('items', ['getEmployeesServ']),
     },
     computed: {
         ...mapGetters('page', ['getCurrentPage', 'getTotalPages']),

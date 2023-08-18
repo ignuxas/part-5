@@ -14,6 +14,8 @@ import Status from "./components/StatusCard.vue"
 import MutationWindow from "./components/MutationWindow.vue";
 import DeleteWindow from "./components/DeleteWindow.vue";
 
+import { mapActions } from "vuex";
+
 export default {
   name: "App",
   components: {
@@ -23,7 +25,10 @@ export default {
     DeleteWindow
   },
   mounted() {
-    this.$api.login();
+    this.login({});
+  },
+  methods: {
+    ...mapActions("user", ["login"])
   }
 };
 </script>

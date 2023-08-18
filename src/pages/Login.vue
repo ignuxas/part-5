@@ -32,6 +32,7 @@
 
 <script>
 import BackButton from '../components/BackButton.vue';
+import { mapActions, mapGetters } from 'vuex';
 
 export default {
     name: 'Login',
@@ -49,7 +50,18 @@ export default {
             this.changePassword = true;
         }
     },
+    watch: {
+        getUser() {
+            if(this.getUser.id) {
+                this.$router.push('/contacts');
+            }
+        }
+    },
+    computed: {
+        ...mapGetters('user', ['getUser']),
+    },
     methods: {
+        ...mapActions('user', ['login']),
         validate(){
             if(this.changePassword) {
                 if(!this.changePasswordEmail) {
@@ -61,19 +73,19 @@ export default {
                 return true;
             }
             else{
-                const checkElements = {
-                    emailEl: document.getElementById('emailLogin'),
-                    passwordEl: document.getElementById('password')
-                }
+                const checkElements = [
+                    document.getElementById('emailLogin'),
+                    document.getElementById('password')
+                ]
                 
-                let failed = false;
+                let failed = false; 
 
-                for(const [key, value] of Object.entries(checkElements)) {
-                    if(!value.value) {
-                        value.classList.add('border-2', 'border-red');
+                for (const element of checkElements) {
+                    if(!element.value) {
+                        element.classList.add('border-2', 'border-red');
                         failed = true;
                     } else {
-                        value.classList.remove('border-2', 'border-red');
+                        element.classList.remove('border-2', 'border-red');
                     }
                 }
                 return !failed;
@@ -83,12 +95,10 @@ export default {
         async submit() {
             if (!this.validate()) return;
             if (this.changePassword) {
-                //this.$store.dispatch('changePassword', this.changePasswordEmail);
+                // function won't work anyway as there is no email backend setup
+                // this.$store.dispatch('changePassword', this.changePasswordEmail);
             } else {
-                const response = await this.$api.login(this.email, this.password)
-                if(response.status === 200) {
-                    this.$router.push('contacts')
-                }
+                await this.login({identity: this.email, password: this.password})
             }
         }
     },

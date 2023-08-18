@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
 
@@ -42,10 +42,13 @@ export default {
         }
     },
     mounted: function() {
-        this.$api.getEmployee(this.id);
+        this.getEmployeeServ(this.id);
     },
     computed: {
         ...mapGetters('items', ['getEmployee']),
     },
+    methods: {
+        ...mapActions('items', ['getEmployeeServ']),
+    }
 };
 </script>
