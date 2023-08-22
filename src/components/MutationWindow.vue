@@ -32,6 +32,9 @@
                             <label for="email" class="self-start p-1">El. paštas <span class="text-red">*</span></label>
                             <input type="email" v-model="email" id="email" class="w-full h-8 p-2 bg-gray_light rounded" />
                         </div>
+                        <div class="flex flex-col py-2 items-center text-gray text-left text-xs">
+                            Laikinas slaptažodis: {{ this.password }}
+                        </div>
                     </div>
                     <div>
                         <h2 class="pl-9 pb-1 text-lg">Administracinės teisės:</h2>
@@ -43,9 +46,6 @@
                         <div class="flex p-2"><input type="checkbox" v-model="adminOptions.delete_offices" class="mr-4"> <span> Trinti ofisus</span> </div>
                         <div class="flex p-2"><input type="checkbox" v-model="adminOptions.edit_structure" class="mr-4"> <span> Readaguoti ir kurti struktūras</span> </div>
                         <div class="flex p-2"><input type="checkbox" v-model="adminOptions.delete_structure" class="mr-4"> <span> Trinti struktūras</span> </div>
-                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.read_permissions" class="mr-4"> <span> Skaityti admin paskyras</span> </div>
-                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.edit_permissions" class="mr-4"> <span> Readaguoti ir kurti administracines teises</span> </div>
-                        <div class="flex p-2"><input type="checkbox" v-model="adminOptions.delete_permissions" class="mr-4"> <span> Trinti admin paskyras</span> </div>
                     </div>
                 </div>
                 <div class="flex justify-center items-center w-100%">
@@ -264,6 +264,7 @@ const defaultStructure = {
     position: '',
     email: '',
     phone_number: '',
+    password: '',
     photo: null,
 
     structureData: {
@@ -305,7 +306,7 @@ const defaultStructure = {
         delete_offices: false,
         edit_structure: false,
         delete_structure: false,
-        read_permissions: false,
+        read_permissions: true,
         edit_permissions: false,
         delete_permissions: false,
     },
@@ -377,11 +378,17 @@ export default {
             } 
             else if (this.getEditMode && !this.getShowMutateWindow) {}
             else { // create mode
+
                 // reset data
                 Object.keys(this.$data).forEach(key => {
                    this[key] = defaultStructure[key]
                 });
 
+                if(this.getShowMutateWindow) {
+                    this.password = Math.random().toString(36).slice(-8)
+                    defaultStructure.password = this.password
+                }
+                
                 if (this.getType === 'users') { 
                     for (const key in this.adminOptions) {
                         this.adminOptions[key] = false
@@ -435,16 +442,32 @@ export default {
         checkEmpty(list) {
             let failed = false
 
+            function addRedBorder(element) {
+                element.classList.add('border-red');
+                element.classList.add('border-2');
+            }
+            function removeRedBorder(element) {
+                element.classList.remove('border-red');
+                element.classList.remove('border-2');
+            }
+
             list.forEach(name => {
                 let element = document.getElementById(name)
 
-                if(element.value === '') { // if empty
-                    element.classList.add('border-red');
-                    element.classList.add('border-2');
-                    failed = true
-                } else { // if not empty remove red border
-                    element.classList.remove('border-red');
-                    element.classList.remove('border-2');
+                if (element.id  == 'email') {
+                    if (!element.value.includes('@')) {
+                        addRedBorder(element)
+                        failed = true
+                    } else { // if not empty remove red border
+                        removeRedBorder(element)
+                    }
+                } else {
+                    if (element.value.length < 2) { // if empty
+                        addRedBorder(element)
+                        failed = true
+                    } else { // if not empty remove red border
+                        removeRedBorder(element)
+                    }
                 }
             });
 
@@ -479,18 +502,23 @@ export default {
                 } else { this.createCompany(data); }
 
             } else if (this.getType === 'users') { // -------- USER ------------
+                const password = this.password
+
                 let dataUser = {
                     username: this.name,
                     name: this.name,
                     email: this.email,
                 }
                 const dataPermissions = this.adminOptions
+                dataPermissions.read_permissions = true
 
                 if (this.getEditMode) {
                     dataUser.id = this.getCurrentItem.id
                     dataPermissions.id = this.getCurrentItem.expand.permissions_id.id
                     this.updateUser( {user: dataUser, permissions: dataPermissions} );
-                } else this.createUser({user: dataUser, permissions: dataPermissions});
+                } else {
+                    this.createUser({user: dataUser, permissions: dataPermissions, password})
+                }
 
             } else if (this.getType === 'offices') { // -------- OFFICE ------------
                 let data = this.officeData

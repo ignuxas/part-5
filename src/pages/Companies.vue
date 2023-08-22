@@ -1,8 +1,8 @@
 <template>
     <div class="flex flex-col">
         <div class="w-[100%] h-20 text-black text-opacity-90 text-6xl font-light leading-10">Įmonės</div> <!-- Header -->
-        <div id="UtilityBar" class="flex gap-8 text-white items-center ">
-            <button v-if="permissions.edit_companies" @click="toggleMutateWindowFunc('companies', false)"  class="w-20 h-14 relative bg-sky-700 rounded-3xl shadow"><font-awesome-icon :icon="['fas', 'plus']" /></button>
+        <div id="UtilityBar" v-if="permissions.edit_companies" class="flex gap-8 text-white items-center ">
+            <button @click="toggleMutateWindowFunc('companies', false)"  class="w-20 h-14 relative bg-sky-700 rounded-3xl shadow"><font-awesome-icon :icon="['fas', 'plus']" /></button>
             <span class="text-black text-xl">Pridėti naują įmonę</span>
         </div>
         <div class="w-64 h-6 my-4 text-black text-opacity-90 text-base font-normal leading-normal tracking-tight"> <!-- Total items -->

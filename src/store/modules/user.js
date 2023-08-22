@@ -44,12 +44,14 @@ const actions = {
         }
 
         if(identity && password){
+            console.log('login')
             this.reqLogin(identity, password, params).then(res => {
                 if(res.status >= 200 && res.status < 300) {
                     commit('setToken', res.data.token)
                     commit('setUser', res.data.record)
                     localStorage.setItem('token', res.data.token)
                     localStorage.setItem('user', JSON.stringify(res.data.record))
+                    console.log(res.data.record)
                     return {status: res.status, data: res.data}
                 }}
             ).catch(err => {
@@ -58,7 +60,6 @@ const actions = {
                 return {status: 400, data: {}}
             }
         )} else {
-            commit('page/toggleStatus', 400, { root: true })
             return {status: 400, data: {}}
         }
     },
@@ -87,13 +88,12 @@ const actions = {
         }
     )},
 
-    async createUser({ commit }, { user, permissions }) {
-        const randomPassword = Math.random().toString(36).slice(-8)
+    async createUser({ commit }, { user, permissions, password }) {
 
         user = {
             ...user,
-            password: randomPassword,
-            passwordConfirm: randomPassword,
+            password: password,
+            passwordConfirm: password,
             emailVisibility: true,
             permissions_id: null,
         }
@@ -101,7 +101,7 @@ const actions = {
         this.reqCreatePermission(permissions).then(res => {
             if(res.status >= 200 && res.status < 300) {
                 user.permissions_id = res.data.id
-                this.reqCreateUser(user, randomPassword).then(res => {
+                this.reqCreateUser(user, password).then(res => {
                     if(res.status >= 200 && res.status < 300) {
                         this.dispatch('user/getUsersServ')
                         commit('page/toggleStatus', 200, { root: true })
@@ -110,7 +110,7 @@ const actions = {
                     }
                 }).catch(err => {
                     console.log(err)
-                    commit('page/toggleStatus', 400, { root: true })
+                    //commit('page/toggleStatus', 400, { root: true })
                     // delete the permission if the user creation fails
                     this.reqDelete(user.permissions_id, 'user_permissions')
                 })

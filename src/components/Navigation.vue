@@ -5,7 +5,7 @@
             <router-link to="/contacts" class=" hover:text-gray_light">Kontaktai</router-link>
             <router-link to="/companies" class="hover:text-gray_light">Įmonės</router-link>
             <router-link to="/structure" class="hover:text-gray_light">Struktūra</router-link>
-            <router-link to="/users" v-if="permissions.read_permissions" class="hover:text-gray_light">Paskyros</router-link>
+            <router-link to="/users" v-if="getUser.username === 'admin'" class="hover:text-gray_light">Paskyros</router-link>
             <button v-if="Object.keys(getUser).length" class="absolute flex gap-6 right-20 top-9 justify-center items-center" @click="toggleOptions"> 
                 <p>{{ getUser.name }}</p>
                 <div class="flex justify-center items-center w-[40px] h-[40px] bg-white text-primary rounded-full">

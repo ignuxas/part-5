@@ -146,6 +146,7 @@ const actions = {
                 reverse: true,
             });
         }
+        commit('page/setCurrentPage', 1, { root: true })
     },
 }
 

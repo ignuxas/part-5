@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="flex flex-col" v-if="permissions.read_permissions">
+        <div class="flex flex-col" v-if="getUser.username === 'admin'">
             <div class="w-[100%] h-20 text-black text-opacity-90 text-6xl font-light leading-10">Admin paskyros</div> <!-- Header -->
             <div id="UtilityBar" v-if="permissions.edit_permissions" class="flex gap-8 text-white items-center">
                 <button @click="toggleMutateWindowFunc()" class="w-20 h-14 relative bg-sky-700 rounded-3xl shadow"><font-awesome-icon :icon="['fas', 'plus']" /></button>
@@ -22,8 +22,10 @@
                 </tr>
             </table>
         </div>
-        <div v-else class="flex text-3xl w-full h-[400px] items-center justify-center">
+        <div v-else class="flex flex-col gap-6 text-3xl w-full h-[400px] items-center justify-center">
             Jūs neturite teisių peržiūrėti šio puslapio
+            <router-link to="/contacts" class="text-blue-500 hover:text-blue-700 text-lg">Grįžti į pagrindinį puslapį</router-link>
+            <router-link to="/login" class="text-blue-500 hover:text-blue-700 text-lg">Prisijungti</router-link>
         </div>
     </div>
 </template>
