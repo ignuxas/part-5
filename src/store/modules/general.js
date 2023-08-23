@@ -2,13 +2,57 @@ const state = {}
 const getters = {}
 const actions = {
     dispatcher({commit}, type) {
-        if (type === 'employees') this.dispatch('items/getEmployeesServ')
-        else if (type === 'companies') this.dispatch('items/getCompaniesServ')
-        else if (type === 'departments') this.dispatch('items/getDepartments')
-        else if (type === 'divisions') this.dispatch('items/getDivisions')
-        else if (type === 'groups') this.dispatch('items/getGroups')
-        else if (type === 'offices') this.dispatch('items/getOffices')
-        else if (type === 'users') this.dispatch('user/getUsersServ')
+        switch(type) {
+            case 'employees':
+                this.dispatch('items/getEmployeesServ')
+                break
+            case 'companies':
+                this.dispatch('items/getCompaniesServ')
+                break
+            case 'departments':
+                this.dispatch('items/getDepartments')
+                break
+            case 'divisions':
+                this.dispatch('items/getDivisions')
+                break
+            case 'groups':
+                this.dispatch('items/getGroups')
+                break
+            case 'offices':
+                this.dispatch('items/getOffices')
+                break
+            case 'users':
+                this.dispatch('user/getUsersServ')
+                break
+            default:
+                break
+        }
+    },
+
+    async validateInput({commit}, idList) {
+        let passed = true
+
+        function addRedBorder(element) {
+            element.classList.add('border-red')
+            element.classList.add('border-2')
+        }
+        function removeRedBorder(element) {
+            element.classList.remove('border-red')
+            element.classList.remove('border-2')
+        }
+
+        idList.forEach(id => {
+            const element = document.getElementById(id)
+            console.log()
+            if(element.value.length < 2 || (element.id == 'email' && !element.value.includes('@'))) {
+                addRedBorder(element)
+                passed = false
+            } else {
+                removeRedBorder(element)
+            }
+        })
+
+        return passed
     },
 
     async doDelete({ commit }, {id, type}) {

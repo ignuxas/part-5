@@ -38,7 +38,7 @@ export default {
         ...mapGetters('user', ['permissions']),
     },
     methods: {
-        ...mapMutations('mutate', [
+        ...mapMutations('modalModule', [
             'toggleMutateWindow', 
             'toggleDeleteWindow', 
             'setType', 

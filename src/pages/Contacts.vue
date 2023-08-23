@@ -58,7 +58,7 @@ export default {
             'toggleTableView',
             'setPostsPerPage'
         ]),
-        ...mapMutations('mutate', [
+        ...mapMutations('modalModule', [
             'toggleMutateWindow',  
             'setEditMode',
             'setType'
@@ -73,7 +73,7 @@ export default {
             'getGroups',
         ]),
         toggleMutateWindowFunc() {
-            this.setType('employee');
+            this.setType('employees');
             this.toggleMutateWindow();
             this.setEditMode(false);
         },

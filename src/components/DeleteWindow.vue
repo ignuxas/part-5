@@ -48,10 +48,10 @@ export default {
     name: 'DeleteWindow',
     computed: {
         ...mapGetters('items', ['getCurrentItem']),
-        ...mapGetters('mutate', ['getShowDeleteWindow', 'getType']),
+        ...mapGetters('modalModule', ['getShowDeleteWindow', 'getType']),
     },
     methods: {
-        ...mapMutations('mutate', ['toggleDeleteWindow']),
+        ...mapMutations('modalModule', ['toggleDeleteWindow']),
         ...mapActions('general', ['doDelete']),
     }
 };

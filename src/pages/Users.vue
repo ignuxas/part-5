@@ -25,7 +25,7 @@
         <div v-else class="flex flex-col gap-6 text-3xl w-full h-[400px] items-center justify-center">
             Jūs neturite teisių peržiūrėti šio puslapio
             <router-link to="/contacts" class="text-blue-500 hover:text-blue-700 text-lg">Grįžti į pagrindinį puslapį</router-link>
-            <router-link to="/login" class="text-blue-500 hover:text-blue-700 text-lg">Prisijungti</router-link>
+
         </div>
     </div>
 </template>
@@ -37,21 +37,15 @@ export default {
     name: 'Users',
     async mounted() {
         await this.login({identity: null, password: null});
-        try {
-            if(this.getUser.expand.permissions_id.read_permissions)
-                this.getUsersServ();
-            else this.$router.push('/')
-        } catch(e) {
-            this.$router.push('/')
-        }
-;
+        if(this.getUser.username === 'admin')
+            this.getUsersServ();
     },
     computed: {
         ...mapGetters('user', ['permissions', 'getUser']),
         ...mapGetters('items', ['getUsers',]),
     },
     methods: {
-        ...mapMutations('mutate', ['toggleMutateWindow', 'toggleDeleteWindow', 'setType', 'setEditMode', 'setUser']),
+        ...mapMutations('modalModule', ['toggleMutateWindow', 'toggleDeleteWindow', 'setType', 'setEditMode', 'setUser']),
         ...mapMutations('items', ['setItem']),
 
         ...mapActions('user', [

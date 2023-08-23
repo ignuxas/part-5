@@ -4,7 +4,7 @@ import VueX from 'vuex';
 import page from './modules/page';
 import items from './modules/items';
 import user from './modules/user';
-import mutate from './modules/mutate';
+import modalModule from './modules/modalModule';
 import general from './modules/general';
 
 import generalAPI from './plugins/general';
@@ -23,7 +23,7 @@ export default new VueX.Store({
         page,
         items,
         user, 
-        mutate,
+        modalModule,
         general,
     },
     plugins: [

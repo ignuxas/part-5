@@ -57,7 +57,7 @@ export default {
         },
     },
     methods: {
-        ...mapMutations('mutate', ['toggleMutateWindow', 'toggleDeleteWindow', 'setType', 'setEditMode']),
+        ...mapMutations('modalModule', ['toggleMutateWindow', 'toggleDeleteWindow', 'setType', 'setEditMode']),
         ...mapMutations('items', ['setItem']),
 
         ...mapActions('items', [

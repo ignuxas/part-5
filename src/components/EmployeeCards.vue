@@ -72,7 +72,7 @@ export default {
         ]),
     },
     methods: {
-        ...mapMutations ('mutate', ['toggleMutateWindow', 
+        ...mapMutations ('modalModule', ['toggleMutateWindow', 
         'toggleDeleteWindow', 'setEditMode', 'setType']),
         ...mapMutations ('items', ['setItem']),
 
