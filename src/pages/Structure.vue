@@ -6,13 +6,21 @@
                 <button class="w-20 h-14 relative bg-sky-700 rounded-3xl shadow" @click="openMutateWindow('structures')"><font-awesome-icon :icon="['fas', 'plus']" /></button>
                 <span class="text-black text-xl">Sukurti naują struktūrą</span>
             </div>
+            <div > <!-- Tab buttons -->
+                <div class="flex gap-8 mt-8">
+                    <button @click="currentTab = 'Skyrius'" class="transition-colors w-40 h-14 relative rounded-3xl shadow" :class="currentTab === 'Skyrius' ? 'bg-primary' : 'bg-sky-700'"><span class="text-white text-xl">Skyriai</span></button>
+                    <button @click="currentTab = 'Padalinys'" class="transition-colors w-40 h-14 relative rounded-3xl shadow" :class="currentTab === 'Padalinys' ? 'bg-primary' : 'bg-sky-700'"><span class="text-white text-xl">Padaliniai</span></button>
+                    <button @click="currentTab = 'Grupė'" class="transition-colors w-40 h-14 relative rounded-3xl shadow" :class="currentTab === 'Grupė' ? 'bg-primary' : 'bg-sky-700'"><span class="text-white text-xl">Grupės</span></button>
+                    <button @click="currentTab = 'Ofisas'" class="transition-colors w-40 h-14 relative rounded-3xl shadow" :class="currentTab === 'Ofisas' ? 'bg-primary' : 'bg-sky-700'"><span class="text-white text-xl">Ofisai</span></button>
+                </div>
+            </div>
             <table class="shadow mt-8">
                 <tr class="border-gray_light border-b-2">
                     <th class="float-left p-4">Pavadinimas</th>
                     <th class="text-left">Tipas</th>
                     <th v-if="permissions.delete_structure || permissions.edit_structure">Veiksmai</th>
                 </tr>
-                <tr v-for="tile in tiles" class="bgdarkgrayhover border-gray_light border-b-2">
+                <tr v-for="tile in tiles" class="bgdarkgrayhover border-gray_light border-b-2" v-if="tile.type === currentTab">
                     <td class="p-4">{{ tile.name }}</td>
                     <td>{{ tile.type }}</td>
                     <td class="text-center" v-if="permissions.delete_structure || permissions.edit_structure">
@@ -31,6 +39,11 @@ import { mapGetters, mapMutations, mapActions } from 'vuex';
 
 export default {
     name: 'Structure',
+    data() {
+        return {
+            currentTab: 'Skyrius'
+        }
+    },  
     mounted() {
         this.getOffices();
         this.getDepartments();
